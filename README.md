@@ -5,7 +5,7 @@ R package with custom functions including:
 * Correlation and clustering of gene sets after enrichment analysis
 * Adapted singscore function
 
-To install the package type the following command in R/RStudio:
+To install the package type the following command in R/RStudio (devtools package required):
 
 ```
 devtools::install_github("mdugo/TTpackage")
