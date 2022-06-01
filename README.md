@@ -15,3 +15,10 @@ To install the package type the following command in R/RStudio (devtools package
 ```
 devtools::install_github("mdugo/TTpackage")
 ```
+
+To see the list of functions and read their manual pages:
+
+```
+library(TTpackage)
+help(package = TTpackage)
+```
