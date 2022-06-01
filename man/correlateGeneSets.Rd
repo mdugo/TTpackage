@@ -3,30 +3,37 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{correlateGeneSets}
 \description{
-Given a list of gene sets and an expression matrix this function performs singscore, evaluates the correlation (Spearman) between gene sets, generates a network and detect gene sets clusters of highly correlated gene sets
+Given a list of gene sets  this function cluster them using a network approach based on similarity in terms of gene content or correlation.
 }
 \usage{
 correlateGeneSets(x)
 }
-correlateGeneSets(expMat,
-  enrichment_table,
-  directional=TRUE,
-  GSEA_style=TRUE,
-  gene_set_list=NULL,
-  correl_th=0.9,
-  FDR_th=0.05,
-  FDR_column,
-  gene_set_name_column,
-  NES_column="NES",
-  NES_th=0,
-  igraph.vertex.label = NA,
-  igraph.vertex.label.cex = 0.2,
-  igraph.vertex.frame.color="black",
-  igraph.edge.color = "black",
-  igraph.mark.border = "black",
-  legend_cex=0.4
+correlateGeneSets(cluster_by = c("gene_content","correlation"),
+                              similarity_method = c("kappa", "jaccard", "dice", "overlap"),
+                              similarity_th = 0,
+                              expMat,
+                              enrichment_table,
+                              directional=TRUE,
+                              GSEA_style=TRUE,
+                              gene_set_list=NULL,
+                              correl_th=0.9,
+                              FDR_th=0.05,
+                              FDR_column,
+                              gene_set_name_column,
+                              NES_column="NES",
+                              NES_th=0,
+                              gene_content_column=NULL,
+                              igraph.vertex.label = NA,
+                              igraph.vertex.label.cex = 0.2,
+                              igraph.vertex.frame.color="black",
+                              igraph.edge.color = "black",
+                              igraph.mark.border = "black",
+                              legend_cex=0.4
   )
 \arguments{
+  \item{cluster_by}{Character. Whether to cluster gene sets by correlation or by gene content. Values = c("gene_content", "correlation")}
+  \item{similarity_method}{Character. Method used to calculate similarity between gene sets when cluster_by is "gene_content". Values = c("kappa", "jaccard", "dice", "overlap")}
+  \item{similarity_th}{Numerical value. Similarity threshold to filter out network edges}
   \item{expMat}{Gene expression matrix with gene symbols as row names}
   \item{enrichment_table}{data frame resulting from a GSEA or ORA analysis}
   \item{directional}{If TRUE, a column indicating if gene sets are positively or negatively enriched is required. Default: TRUE}
@@ -38,6 +45,7 @@ correlateGeneSets(expMat,
   \item{gene_set_name_column}{string indicating the name of the column of the enrichment_table containing gene set names. No default}
   \item{NES_column}{string indicating the name of the column of the enrichment_table containing the NES. Required only when GSEA_style = TRUE. No default}
   \item{NES_th}{Numerical value. NES threshold used to filter significant gene sets. Required only when GSEA_style = TRUE. Default: 0}
+  \item{gene_content_column}{string indicating the name of the column of the enrichment_table containing leading edge genes or genes of the gene set contained in the input list for ORA analysis. Default = NULL}
   \item{igraph.}{Graphical parameters for igraph network}
   \item{legend_cex}{A numerical value giving the amount by which legend should be magnified relative to the default. A valueo of 1 means no magnification. Default: 0.4.}
 }
