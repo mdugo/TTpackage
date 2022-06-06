@@ -58,6 +58,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                               igraph.vertex.frame.color="black", igraph.edge.color = "black",
                               igraph.mark.border = "black", legend_cex=0.4){
 
+
   require(Biobase)
   require(circlize)
   require(ComplexHeatmap)
@@ -76,9 +77,61 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
   enrichment_table<-as.data.frame(enrichment_table)
   sig<-enrichment_table[enrichment_table[,FDR_column] < FDR_th & abs(enrichment_table[,NES_column]) >= NES_th, gene_set_name_column]
 
+  if(length(sig) == 0){
+    stop("Error: no significant gene sets found at provided thresholds.")
+  }
+
   if(cluster_by == "gene_content"){
     if(is.null(gene_content_column)){
-      stop("Error: no leading edge column provided.")
+      print("No leading edge provided. Proceeding with the full gene content of gene sets.")
+
+      if(length(grep("HALLMARK|REACTOME|KEGG|BIOCARTA|PID|WP|GOBP", unique(gsub("_.*", "", sig)))) >= 1){
+        print("Retrieving gene sets from MSigDB...")
+        gs1 <- msigdbr(species = "Homo sapiens", category = "H")
+        gs2 <- msigdbr(species = "Homo sapiens", category = "C2")
+        gs3 <- msigdbr(species = "Homo sapiens", category = "C5")
+        print("Done.")
+        gs<-rbind(gs1, gs2, gs3)
+        gs<-gs[gs$gs_name%in%sig,]
+
+        print("Converting to a list...")
+        setlist<-vector("list", length=length(unique(gs$gs_name)))
+        names(setlist)<-unique(gs$gs_name)
+        for(i in 1:length(setlist)){
+          setlist[[i]]<-unique(gs$human_gene_symbol[gs$gs_name==names(setlist)[i]])
+        }
+        if (nrow(gs) == 0){
+          stop("Error: provided gene sets are not found in gene set list.")
+        }
+      }
+      if(!all(unique(gsub("_.*", "", sig)) %in% c("HALLMARK", "REACTOME", "KEGG", "BIOCARTA", "PID", "WP", "GOBP"))){
+        if(is.null(gene_set_list)){
+          stop("Error: additional gene sets detected. Please provide the custom gene set list with gene symbols.")
+        }
+        gs_custom<-gene_set_list
+        toUnlist<-gs_custom[names(gs_custom) %in% names(which(sapply(gs_custom, class) == "list"))]
+        if(length(toUnlist)>0){
+          gs_custom<-gs_custom[!names(gs_custom) %in% names(which(sapply(gs_custom, class) == "list"))]
+          for(i in 1:length(toUnlist)){
+            gs_custom<-c(gs_custom, toUnlist[[i]])
+          }
+        }
+        gs_custom<-gs_custom[names(gs_custom) %in% sig]
+        gs_custom<-gs_custom[-grep("HALLMARK|REACTOME|KEGG|BIOCARTA|PID|WP|GOBP", names(gs_custom))]
+        names(gs_custom)<-paste0("CUSTOM_", names(gs_custom))
+        setlist<-c(setlist, gs_custom)
+      }
+      if(length(grep("HALLMARK|REACTOME|KEGG|BIOCARTA|PID|WP|GOBP", unique(gsub("_.*", "", sig)))) == 0){
+        if(is.null(gene_set_list)){
+          stop("Error: No gene set list provided. Please provide the custom gene set list with gene symbols.")
+        }
+        setlist<-gene_set_list
+        names(setlist)<-paste0("CUSTOM_", names(setlist))
+      }
+      print("Done.")
+
+      ts<-term_similarity(setlist, method = similarity_method)
+
     } else {
       le<-enrichment_table[enrichment_table[,gene_set_name_column] %in% sig,gene_content_column]
       names(le)<-enrichment_table[enrichment_table[,gene_set_name_column] %in% sig,gene_set_name_column]
@@ -90,9 +143,13 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                                     diag=F,
                                     weighted = T)
     ig<-delete_edges(ig, edges=which(E(ig)$weight <= similarity_th))
+    if(gsize(ig) == 0){
+      stop("Error: no edges left after filtering for similarity threshold.")
+    }
 
     cl = membership(cluster_fast_greedy(ig))
     cl[cl%in%names(which(table(cl)==1))]<-"Unclustered"
+    names(cl)<-gsub("CUSTOM_","",names(cl))
 
     res2<-enrichment_table[enrichment_table[,gene_set_name_column]%in%names(cl),]
     res2<-res2[match(names(cl), res2[,gene_set_name_column]),]
@@ -128,15 +185,63 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                bty = "n",
                cex = legend_cex)
       }
-      if(directional == TRUE & GSEA_style == TRUE){
-        V(ig)$Direction<-res2$NES
+    }
+    if(directional == TRUE & GSEA_style == TRUE){
+      V(ig)$Direction<-res2$NES
+      set.seed(333)
+      clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+      names(clustercol)<-factor(V(ig)$Cluster)
+      clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
+      clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
+      NEScol<-colorRamp2(breaks = c(min(as.numeric(V(ig)$Direction), na.rm = T), 0, as.numeric(max(V(ig)$Direction), na.rm = T)), colors = c("royalblue", "white", "red2"))
+      NEScol<-NEScol(as.numeric(V(ig)$Direction))
+      markg<-list()
+      for(i in 1:length(unique(cl))){
+        markg[[i]]<-which(cl%in%unique(cl)[i])
+      }
+      names(markg)<-unique(cl)
+      markg<-markg[names(markg)!="Unclustered"]
+
+      set.seed(123)
+      coords<-layout_nicely(ig)
+      plot.igraph(ig,
+                  layout=coords,
+                  vertex.size=V(ig)$FDR,
+                  vertex.label=igraph.vertex.label,
+                  vertex.label.cex=igraph.vertex.label.cex,
+                  vertex.frame.color=igraph.vertex.frame.color,
+                  vertex.color=NEScol,
+                  edge.width = E(ig)$weight,
+                  edge.color = igraph.edge.color,
+                  mark.groups = markg,
+                  mark.shape=0.9,
+                  mark.expand=10,
+                  mark.border = igraph.mark.border,
+                  mark.col = clustercolLegend,
+                  margin=c(0,0,0,0))
+      legend("topleft",
+             legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
+             fill = clustercolLegend[names(clustercolLegend) != "Unclustered"],
+             border = T,
+             title ="Clusters",
+             title.adj=0,
+             bty = "n",
+             cex = legend_cex)
+    }
+    if(directional == TRUE & GSEA_style == FALSE){
+      if(sum(colnames(res) == "Direction") == 0){
+        stop("Error: No column providing the directionality of the enrichment was found.")
+      } else {
+        V(ig)$Direction<-res2$Direction
         set.seed(333)
         clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
         names(clustercol)<-factor(V(ig)$Cluster)
         clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
         clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
-        NEScol<-colorRamp2(breaks = c(min(as.numeric(V(ig)$Direction), na.rm = T), 0, as.numeric(max(V(ig)$Direction), na.rm = T)), colors = c("royalblue", "white", "red2"))
-        NEScol<-NEScol(as.numeric(V(ig)$Direction))
+        nodecol<-V(ig)$Direction
+        nodecol[grep("up", V(ig)$Direction, ignore.case = T)]<-"red2"
+        nodecol[grep("down|dn", V(ig)$Direction, ignore.case = T)]<-"royalblue"
+
         markg<-list()
         for(i in 1:length(unique(cl))){
           markg[[i]]<-which(cl%in%unique(cl)[i])
@@ -152,7 +257,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                     vertex.label=igraph.vertex.label,
                     vertex.label.cex=igraph.vertex.label.cex,
                     vertex.frame.color=igraph.vertex.frame.color,
-                    vertex.color=NEScol,
+                    vertex.color=nodecol,
                     edge.width = E(ig)$weight,
                     edge.color = igraph.edge.color,
                     mark.groups = markg,
@@ -170,79 +275,52 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                bty = "n",
                cex = legend_cex)
       }
-      if(directional == TRUE & GSEA_style == FALSE){
-        if(sum(colnames(res) == "Direction") == 0){
-          stop("Error: No column providing the directionality of the enrichment was found.")
-        } else {
-          V(ig)$Direction<-res2$Direction
-          set.seed(333)
-          clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
-          names(clustercol)<-factor(V(ig)$Cluster)
-          clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
-          clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
-          nodecol<-V(ig)$Direction
-          nodecol[grep("up", V(ig)$Direction, ignore.case = T)]<-"red2"
-          nodecol[grep("down|dn", V(ig)$Direction, ignore.case = T)]<-"royalblue"
+    }
+    community<-data.frame(geneSet = names(cl), Cluster = as.vector(cl))
+    colnames(community)[1]<-gene_set_name_column
+    enrichment_table<-merge(enrichment_table, community, by=gene_set_name_column, all.x=T)
+    enrichment_table<-enrichment_table[order(enrichment_table$Cluster, enrichment_table[,FDR_column]),]
+    return(enrichment_table)
+    if(directional == FALSE){
+      set.seed(123)
+      coords<-layout_nicely(ig)
+      plot.igraph(ig,
+                  layout=coords,
+                  vertex.size=V(ig)$FDR,
+                  vertex.label=igraph.vertex.label,
+                  vertex.label.cex=igraph.vertex.label.cex,
+                  vertex.frame.color=igraph.vertex.frame.color,
+                  vertex.color="grey80",
+                  edge.width = E(ig)$weight,
+                  edge.color = igraph.edge.color,
+                  margin=c(0,0,0,0))
+    }
+    if(directional == TRUE & GSEA_style == TRUE){
+      V(ig)$Direction<-res2$NES
+      NEScol<-colorRamp2(breaks = c(min(as.numeric(V(ig)$Direction), na.rm = T), 0, as.numeric(max(V(ig)$Direction), na.rm = T)), colors = c("royalblue", "white", "red2"))
+      NEScol<-NEScol(as.numeric(V(ig)$Direction))
 
-          markg<-list()
-          for(i in 1:length(unique(cl))){
-            markg[[i]]<-which(cl%in%unique(cl)[i])
-          }
-          names(markg)<-unique(cl)
-          markg<-markg[names(markg)!="Unclustered"]
-
-          set.seed(123)
-          coords<-layout_nicely(ig)
-          plot.igraph(ig,
-                      layout=coords,
-                      vertex.size=V(ig)$FDR,
-                      vertex.label=igraph.vertex.label,
-                      vertex.label.cex=igraph.vertex.label.cex,
-                      vertex.frame.color=igraph.vertex.frame.color,
-                      vertex.color=nodecol,
-                      edge.width = E(ig)$weight,
-                      edge.color = igraph.edge.color,
-                      mark.groups = markg,
-                      mark.shape=0.9,
-                      mark.expand=10,
-                      mark.border = igraph.mark.border,
-                      mark.col = clustercolLegend,
-                      margin=c(0,0,0,0))
-          legend("topleft",
-                 legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
-                 fill = clustercolLegend[names(clustercolLegend) != "Unclustered"],
-                 border = T,
-                 title ="Clusters",
-                 title.adj=0,
-                 bty = "n",
-                 cex = legend_cex)
-        }
-      }
-      community<-data.frame(geneSet = names(cl), Cluster = as.vector(cl))
-      colnames(community)[1]<-gene_set_name_column
-      enrichment_table<-merge(enrichment_table, community, by=gene_set_name_column, all.x=T)
-      enrichment_table<-enrichment_table[order(enrichment_table$Cluster, enrichment_table[,FDR_column]),]
-      return(enrichment_table)
-
-    } else {
-      if(directional == FALSE){
-        set.seed(123)
-        coords<-layout_nicely(ig)
-        plot.igraph(ig,
-                    layout=coords,
-                    vertex.size=V(ig)$FDR,
-                    vertex.label=igraph.vertex.label,
-                    vertex.label.cex=igraph.vertex.label.cex,
-                    vertex.frame.color=igraph.vertex.frame.color,
-                    vertex.color="grey80",
-                    edge.width = E(ig)$weight,
-                    edge.color = igraph.edge.color,
-                    margin=c(0,0,0,0))
-      }
-      if(directional == TRUE & GSEA_style == TRUE){
-        V(ig)$Direction<-res2$NES
-        NEScol<-colorRamp2(breaks = c(min(as.numeric(V(ig)$Direction), na.rm = T), 0, as.numeric(max(V(ig)$Direction), na.rm = T)), colors = c("royalblue", "white", "red2"))
-        NEScol<-NEScol(as.numeric(V(ig)$Direction))
+      set.seed(123)
+      coords<-layout_nicely(ig)
+      plot.igraph(ig,
+                  layout=coords,
+                  vertex.size=V(ig)$FDR,
+                  vertex.label=igraph.vertex.label,
+                  vertex.label.cex=igraph.vertex.label.cex,
+                  vertex.frame.color=igraph.vertex.frame.color,
+                  vertex.color=NEScol,
+                  edge.width = E(ig)$weight,
+                  edge.color = igraph.edge.color,
+                  margin=c(0,0,0,0))
+    }
+    if(directional == TRUE & GSEA_style == FALSE){
+      if(sum(colnames(res) == "Direction") == 0){
+        stop("Error: No column providing the directionality of the enrichment was found.")
+      } else {
+        V(ig)$Direction<-res2$Direction
+        nodecol<-V(ig)$Direction
+        nodecol[grep("up", V(ig)$Direction, ignore.case = T)]<-"red2"
+        nodecol[grep("down|dn", V(ig)$Direction, ignore.case = T)]<-"royalblue"
 
         set.seed(123)
         coords<-layout_nicely(ig)
@@ -252,33 +330,10 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                     vertex.label=igraph.vertex.label,
                     vertex.label.cex=igraph.vertex.label.cex,
                     vertex.frame.color=igraph.vertex.frame.color,
-                    vertex.color=NEScol,
+                    vertex.color=nodecol,
                     edge.width = E(ig)$weight,
                     edge.color = igraph.edge.color,
                     margin=c(0,0,0,0))
-      }
-      if(directional == TRUE & GSEA_style == FALSE){
-        if(sum(colnames(res) == "Direction") == 0){
-          stop("Error: No column providing the directionality of the enrichment was found.")
-        } else {
-          V(ig)$Direction<-res2$Direction
-          nodecol<-V(ig)$Direction
-          nodecol[grep("up", V(ig)$Direction, ignore.case = T)]<-"red2"
-          nodecol[grep("down|dn", V(ig)$Direction, ignore.case = T)]<-"royalblue"
-
-          set.seed(123)
-          coords<-layout_nicely(ig)
-          plot.igraph(ig,
-                      layout=coords,
-                      vertex.size=V(ig)$FDR,
-                      vertex.label=igraph.vertex.label,
-                      vertex.label.cex=igraph.vertex.label.cex,
-                      vertex.frame.color=igraph.vertex.frame.color,
-                      vertex.color=nodecol,
-                      edge.width = E(ig)$weight,
-                      edge.color = igraph.edge.color,
-                      margin=c(0,0,0,0))
-        }
       }
     }
   }
@@ -310,9 +365,11 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
       }
       gs_custom<-gene_set_list
       toUnlist<-gs_custom[names(gs_custom) %in% names(which(sapply(gs_custom, class) == "list"))]
-      gs_custom<-gs_custom[!names(gs_custom) %in% names(which(sapply(gs_custom, class) == "list"))]
-      for(i in 1:length(toUnlist)){
-        gs_custom<-c(gs_custom, toUnlist[[i]])
+      if(length(toUnlist)>0){
+        gs_custom<-gs_custom[!names(gs_custom) %in% names(which(sapply(gs_custom, class) == "list"))]
+        for(i in 1:length(toUnlist)){
+          gs_custom<-c(gs_custom, toUnlist[[i]])
+        }
       }
       gs_custom<-gs_custom[names(gs_custom) %in% sig]
       gs_custom<-gs_custom[-grep("HALLMARK|REACTOME|KEGG|BIOCARTA|PID|WP|GOBP", names(gs_custom))]
@@ -372,6 +429,9 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                                       diag=F,
                                       weighted = T)
       ig<-delete_edges(ig, edges=which(E(ig)$weight <= correl_th))
+      if(gsize(ig) == 0){
+        stop("Error: no edges left after filtering for similarity threshold.")
+      }
 
       cl = membership(cluster_fast_greedy(ig))
       cl[cl%in%names(which(table(cl)==1))]<-"Unclustered"
@@ -423,9 +483,11 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
       }
     }
     if(directional == TRUE & GSEA_style == TRUE){
-      layout(matrix(c(1:2), ncol=2))
       up<-enrichment_table[enrichment_table[,gene_set_name_column] %in% sig & enrichment_table[,NES_column] > 0,gene_set_name_column]
       dn<-enrichment_table[enrichment_table[,gene_set_name_column] %in% sig & enrichment_table[,NES_column] < 0,gene_set_name_column]
+
+      layout(matrix(c(1:2), ncol=2))
+
 
       correl.up<-correl[rownames(correl) %in% up , colnames(correl) %in% up]
 
@@ -434,6 +496,9 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                                       diag=F,
                                       weighted = T)
       ig<-delete_edges(ig, edges=which(E(ig)$weight <= correl_th))
+      if(gsize(ig) == 0){
+        stop("Error: no edges left after filtering for similarity threshold.")
+      }
 
       cl.up <- membership(cluster_fast_greedy(ig))
       cl.up[cl.up%in%names(which(table(cl.up)==1))]<-"Unclustered"
@@ -475,6 +540,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                     mark.border = igraph.mark.border,
                     mark.col = clustercolLegend,
                     margin=c(0,0,0,0))
+        title("Up-regulated",cex.main=3,col.main="black")
         legend("topleft",
                legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
                fill = clustercolLegend[names(clustercolLegend) != "Unclustered"],
@@ -505,6 +571,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                     edge.width = E(ig)$weight,
                     edge.color = igraph.edge.color,
                     margin=c(0,0,0,0))
+        title("Up-regulated",cex.main=3,col.main="black")
       }
 
       correl.dn<-correl[rownames(correl) %in% dn , colnames(correl) %in% dn]
@@ -514,6 +581,9 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                                       diag=F,
                                       weighted = T)
       ig<-delete_edges(ig, edges=which(E(ig)$weight <= correl_th))
+      if(gsize(ig) == 0){
+        stop("Error: no edges left after filtering for similarity threshold.")
+      }
 
       cl.dn <- membership(cluster_fast_greedy(ig))
       cl.dn[cl.dn%in%names(which(table(cl.dn)==1))]<-"Unclustered"
@@ -523,7 +593,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
         V(ig)$Cluster<-cl.dn
         V(ig)$FDR<--log10(ifelse(res2[,FDR_column]<1e-10, 1e-10, res2[,FDR_column]))
         V(ig)$Direction<-res2$NES
-        set.seed(333)
+        set.seed(343)
         clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
         names(clustercol)<-factor(V(ig)$Cluster)
         clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
@@ -554,6 +624,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                     mark.border = igraph.mark.border,
                     mark.col = clustercolLegend,
                     margin=c(0,0,0,0))
+        title("Down-regulated",cex.main=3,col.main="black")
         legend("topleft",
                legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
                fill = clustercolLegend[names(clustercolLegend) != "Unclustered"],
@@ -584,6 +655,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                     edge.width = E(ig)$weight,
                     edge.color = igraph.edge.color,
                     margin=c(0,0,0,0))
+        title("Down-regulated",cex.main=3,col.main="black")
       }
       cl<-c(cl.up, cl.dn)
     }
@@ -604,6 +676,9 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                                         diag=F,
                                         weighted = T)
         ig<-delete_edges(ig, edges=which(E(ig)$weight <= correl_th))
+        if(gsize(ig) == 0){
+          stop("Error: no edges left after filtering for similarity threshold.")
+        }
 
         cl.up <- membership(cluster_fast_greedy(ig))
         cl.up[cl.up%in%names(which(table(cl.up)==1))]<-"Unclustered"
@@ -642,6 +717,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                       mark.border = igraph.mark.border,
                       mark.col = clustercolLegend,
                       margin=c(0,0,0,0))
+          title("Up-regulated",cex.main=3,col.main="black")
           legend("topleft",
                  legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
                  fill = clustercolLegend[names(clustercolLegend) != "Unclustered"],
@@ -669,6 +745,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                       edge.width = E(ig)$weight,
                       edge.color = igraph.edge.color,
                       margin=c(0,0,0,0))
+          title("Up-regulated",cex.main=3,col.main="black")
         }
 
         correl.dn<-correl[rownames(correl) %in% dn , colnames(correl) %in% dn]
@@ -678,6 +755,9 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                                         diag=F,
                                         weighted = T)
         ig<-delete_edges(ig, edges=which(E(ig)$weight <= correl_th))
+        if(gsize(ig) == 0){
+          stop("Error: no edges left after filtering for similarity threshold.")
+        }
 
         cl.dn <- membership(cluster_fast_greedy(ig))
         cl.dn[cl.dn%in%names(which(table(cl.dn)==1))]<-"Unclustered"
@@ -716,6 +796,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                       mark.border = igraph.mark.border,
                       mark.col = clustercolLegend,
                       margin=c(0,0,0,0))
+          title("Down-regulated",cex.main=3,col.main="black")
           legend("topleft",
                  legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
                  fill = clustercolLegend[names(clustercolLegend) != "Unclustered"],
@@ -743,6 +824,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                       edge.width = E(ig)$weight,
                       edge.color = igraph.edge.color,
                       margin=c(0,0,0,0))
+          title("Down-regulated",cex.main=3,col.main="black")
         }
         cl<-c(cl.up, cl.dn)
       }
