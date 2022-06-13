@@ -3,7 +3,7 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{correlateGeneSets}
 \description{
-Given a list of gene sets  this function cluster them using a network approach based on similarity in terms of gene content or correlation.
+Given a list of gene sets this function cluster them using a network approach based on similarity in terms of gene content or correlation.
 }
 \usage{
 correlateGeneSets(x)
@@ -16,6 +16,7 @@ correlateGeneSets(cluster_by = c("gene_content","correlation"),
                               directional=TRUE,
                               GSEA_style=TRUE,
                               gene_set_list=NULL,
+                              correlation_method = c("pearson", "spearman"),
                               correl_th=0.9,
                               FDR_th=0.05,
                               FDR_column,
@@ -32,14 +33,15 @@ correlateGeneSets(cluster_by = c("gene_content","correlation"),
   )
 \arguments{
   \item{cluster_by}{Character. Whether to cluster gene sets by correlation or by gene content. Values = c("gene_content", "correlation")}
-  \item{similarity_method}{Character. Method used to calculate similarity between gene sets when cluster_by is "gene_content". Values = c("kappa", "jaccard", "dice", "overlap")}
-  \item{similarity_th}{Numerical value. Similarity threshold to filter out network edges}
-  \item{expMat}{Gene expression matrix with gene symbols as row names}
+  \item{similarity_method}{Character. Method used to calculate similarity between gene sets when cluster_by is "gene_content". Values = c("kappa", "jaccard", "dice", "overlap"). Ignored if cluster_by = "correlation"}
+  \item{similarity_th}{Numerical value. Similarity threshold to filter out network edges. Ignored if cluster_by = "correlation"}
+  \item{expMat}{Gene expression matrix with gene symbols as row names. Ignored if cluster_by = "correlation"}
   \item{enrichment_table}{data frame resulting from a GSEA or ORA analysis}
   \item{directional}{If TRUE, a column indicating if gene sets are positively or negatively enriched is required. Default: TRUE}
   \item{GSEA_style}{If TRUE, a column indicating the NES is required. Default: TRUE}
   \item{gene_set_list}{A list of gene sets with gene symbols required when custom gene sets not included in msigdb were used. Default: NULL}
-  \item{correl_th}{Numerical value. Correlation threshold used to filter edges in the network. Default: 0.9}
+  \item{correl_method}{Character. Correlation method used to calculate correlation between gene sets. Options: pearson or spearman. Ignored if cluster_by = "gene_content"}
+  \item{correl_th}{Numerical value. Correlation threshold used to filter edges in the network. Default: 0.9. Ignored if cluster_by = "gene_content"}
   \item{FDR_th}{Numerical value. FDR threshold used to select significant gene sets. Default: 0.05}
   \item{FDR_column}{string indicating the name of the column of the enrichment_table containing FDR. No default}
   \item{gene_set_name_column}{string indicating the name of the column of the enrichment_table containing gene set names. No default}
