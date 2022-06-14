@@ -436,7 +436,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                                         weighted = T)
         ig<-delete_edges(ig, edges=which(E(ig)$weight <= correl_th))
         if(gsize(ig) == 0){
-          Print("No edges left after filtering for similarity threshold.")
+          print("No edges left after filtering for similarity threshold.")
         } else {
 
           cl = membership(cluster_fast_greedy(ig))
@@ -1287,7 +1287,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               temp<-enrichment_list[[i]]
               temp<-temp[,colnames(temp) %in% c(gene_set_name_column, FDR_column)]
               foo<-data.frame(Node = names(V(ig)), pathway = gsub("CUSTOM_", "", names(V(ig))), stringsAsFactors = F)
-              foo<-merge(foo, temp, by = "pathway", all.x = T)
+              colnames(foo)[2]<-gene_set_name_column
+              foo<-merge(foo, temp, by = gene_set_name_column, all.x = T)
               foo<-foo[match(names(V(ig)), foo$Node),]
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-ifelse(foo[,FDR_column] < FDR_th, "gold", "grey80")
@@ -1337,7 +1338,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               temp<-enrichment_list[[i]]
               temp<-temp[,colnames(temp) %in% c(gene_set_name_column, NES_column, FDR_column)]
               foo<-data.frame(Node = names(V(ig)), pathway = gsub("CUSTOM_", "", names(V(ig))), stringsAsFactors = F)
-              foo<-merge(foo, temp, by = "pathway", all.x = T)
+              colnames(foo)[2]<-gene_set_name_column
+              foo<-merge(foo, temp, by = gene_set_name_column, all.x = T)
               foo<-foo[match(names(V(ig)), foo$Node),]
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-ifelse(foo[,FDR_column] < FDR_th & foo[,NES_column] >= NES_th, "red2", ifelse(foo[,FDR_column] < FDR_th & foo[,NES_column] <= -NES_th, "royalblue", "grey80"))
@@ -1387,7 +1389,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               temp<-enrichment_list[[i]]
               temp<-temp[,colnames(temp) %in% c(gene_set_name_column, direction_column, FDR_column)]
               foo<-data.frame(Node = names(V(ig)), pathway = gsub("CUSTOM_", "", names(V(ig))), stringsAsFactors = F)
-              foo<-merge(foo, temp, by = "pathway", all.x = T)
+              colnames(foo)[2]<-gene_set_name_column
+              foo<-merge(foo, temp, by = gene_set_name_column, all.x = T)
               foo<-foo[match(names(V(ig)), foo$Node),]
               foo[,FDR_column][is.na(foo[,FDR_column])]<-0.5
               foo[,direction_column][is.na(foo[,direction_column])]<-"n.s."
@@ -1442,7 +1445,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               temp<-enrichment_list[[i]]
               temp<-temp[,colnames(temp) %in% c(gene_set_name_column, FDR_column)]
               foo<-data.frame(Node = names(V(ig)), pathway = gsub("CUSTOM_", "", names(V(ig))), stringsAsFactors = F)
-              foo<-merge(foo, temp, by = "pathway", all.x = T)
+              colnames(foo)[2]<-gene_set_name_column
+              foo<-merge(foo, temp, by = gene_set_name_column, all.x = T)
               foo<-foo[match(names(V(ig)), foo$Node),]
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-ifelse(foo[,FDR_column] < FDR_th, "gold", "grey80")
@@ -1473,7 +1477,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               temp<-enrichment_list[[i]]
               temp<-temp[,colnames(temp) %in% c(gene_set_name_column, NES_column, FDR_column)]
               foo<-data.frame(Node = names(V(ig)), pathway = gsub("CUSTOM_", "", names(V(ig))), stringsAsFactors = F)
-              foo<-merge(foo, temp, by = "pathway", all.x = T)
+              colnames(foo)[2]<-gene_set_name_column
+              foo<-merge(foo, temp, by = gene_set_name_column, all.x = T)
               foo<-foo[match(names(V(ig)), foo$Node),]
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-ifelse(foo[,FDR_column] < FDR_th & foo[,NES_column] >= NES_th, "red2", ifelse(foo[,FDR_column] < FDR_th & foo[,NES_column] <= -NES_th, "royalblue", "grey80"))
@@ -1504,7 +1509,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               temp<-enrichment_list[[i]]
               temp<-temp[,colnames(temp) %in% c(gene_set_name_column, direction_column, FDR_column)]
               foo<-data.frame(Node = names(V(ig)), pathway = gsub("CUSTOM_", "", names(V(ig))), stringsAsFactors = F)
-              foo<-merge(foo, temp, by = "pathway", all.x = T)
+              colnames(foo)[2]<-gene_set_name_column
+              foo<-merge(foo, temp, by = gene_set_name_column, all.x = T)
               foo<-foo[match(names(V(ig)), foo$Node),]
               foo[,FDR_column][is.na(foo[,FDR_column])]<-0.5
               foo[,direction_column][is.na(foo[,direction_column])]<-"n.s."
@@ -1538,11 +1544,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
     }
 
 
-
-
     #################################ù
-
-
 
 
     if(cluster_by == "correlation"){
@@ -1635,7 +1637,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
                                       weighted = T)
       ig<-delete_edges(ig, edges=which(E(ig)$weight <= correl_th))
       if(gsize(ig) == 0){
-        Print("No edges left after filtering for similarity threshold.")
+        print("No edges left after filtering for similarity threshold.")
       } else {
         cl = membership(cluster_fast_greedy(ig))
         cl[cl%in%names(which(table(cl)==1))]<-"Unclustered"
@@ -1644,7 +1646,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
 
         if(length(table(cl))>1){
           for(i in 1:length(enrichList_sig)){
-            cl.temp<-data.frame(x = names(cl), Cluster_gene_content = as.vector(cl))
+            cl.temp<-data.frame(x = names(cl), Cluster_correlation = as.vector(cl))
             colnames(cl.temp)[1]<-gene_set_name_column
             enrichment_list[[i]] <- merge(enrichment_list[[i]], cl.temp, by = gene_set_name_column, all.x = T)
           }
@@ -1654,7 +1656,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               temp<-enrichment_list[[i]]
               temp<-temp[,colnames(temp) %in% c(gene_set_name_column, FDR_column)]
               foo<-data.frame(Node = names(V(ig)), pathway = gsub("CUSTOM_", "", names(V(ig))), stringsAsFactors = F)
-              foo<-merge(foo, temp, by = "pathway", all.x = T)
+              colnames(foo)[2]<-gene_set_name_column
+              foo<-merge(foo, temp, by = gene_set_name_column, all.x = T)
               foo<-foo[match(names(V(ig)), foo$Node),]
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-ifelse(foo[,FDR_column] < FDR_th, "gold", "grey80")
@@ -1703,7 +1706,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               temp<-enrichment_list[[i]]
               temp<-temp[,colnames(temp) %in% c(gene_set_name_column, NES_column, FDR_column)]
               foo<-data.frame(Node = names(V(ig)), pathway = gsub("CUSTOM_", "", names(V(ig))), stringsAsFactors = F)
-              foo<-merge(foo, temp, by = "pathway", all.x = T)
+              colnames(foo)[2]<-gene_set_name_column
+              foo<-merge(foo, temp, by = gene_set_name_column, all.x = T)
               foo<-foo[match(names(V(ig)), foo$Node),]
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-ifelse(foo[,FDR_column] < FDR_th & foo[,NES_column] >= NES_th, "red2", ifelse(foo[,FDR_column] < FDR_th & foo[,NES_column] <= -NES_th, "royalblue", "grey80"))
@@ -1753,7 +1757,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               temp<-enrichment_list[[i]]
               temp<-temp[,colnames(temp) %in% c(gene_set_name_column, direction_column, FDR_column)]
               foo<-data.frame(Node = names(V(ig)), pathway = gsub("CUSTOM_", "", names(V(ig))), stringsAsFactors = F)
-              foo<-merge(foo, temp, by = "pathway", all.x = T)
+              colnames(foo)[2]<-gene_set_name_column
+              foo<-merge(foo, temp, by = gene_set_name_column, all.x = T)
               foo<-foo[match(names(V(ig)), foo$Node),]
               foo[,FDR_column][is.na(foo[,FDR_column])]<-0.5
               foo[,direction_column][is.na(foo[,direction_column])]<-"n.s."
@@ -1808,7 +1813,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               temp<-enrichment_list[[i]]
               temp<-temp[,colnames(temp) %in% c(gene_set_name_column, FDR_column)]
               foo<-data.frame(Node = names(V(ig)), pathway = gsub("CUSTOM_", "", names(V(ig))), stringsAsFactors = F)
-              foo<-merge(foo, temp, by = "pathway", all.x = T)
+              colnames(foo)[2]<-gene_set_name_column
+              foo<-merge(foo, temp, by = gene_set_name_column, all.x = T)
               foo<-foo[match(names(V(ig)), foo$Node),]
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-ifelse(foo[,FDR_column] < FDR_th, "gold", "grey80")
@@ -1839,7 +1845,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               temp<-enrichment_list[[i]]
               temp<-temp[,colnames(temp) %in% c(gene_set_name_column, NES_column, FDR_column)]
               foo<-data.frame(Node = names(V(ig)), pathway = gsub("CUSTOM_", "", names(V(ig))), stringsAsFactors = F)
-              foo<-merge(foo, temp, by = "pathway", all.x = T)
+              colnames(foo)[2]<-gene_set_name_column
+              foo<-merge(foo, temp, by = gene_set_name_column, all.x = T)
               foo<-foo[match(names(V(ig)), foo$Node),]
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-ifelse(foo[,FDR_column] < FDR_th & foo[,NES_column] >= NES_th, "red2", ifelse(foo[,FDR_column] < FDR_th & foo[,NES_column] <= -NES_th, "royalblue", "grey80"))
@@ -1870,7 +1877,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               temp<-enrichment_list[[i]]
               temp<-temp[,colnames(temp) %in% c(gene_set_name_column, direction_column, FDR_column)]
               foo<-data.frame(Node = names(V(ig)), pathway = gsub("CUSTOM_", "", names(V(ig))), stringsAsFactors = F)
-              foo<-merge(foo, temp, by = "pathway", all.x = T)
+              colnames(foo)[2]<-gene_set_name_column
+              foo<-merge(foo, temp, by = gene_set_name_column, all.x = T)
               foo<-foo[match(names(V(ig)), foo$Node),]
               foo[,FDR_column][is.na(foo[,FDR_column])]<-0.5
               foo[,direction_column][is.na(foo[,direction_column])]<-"n.s."
