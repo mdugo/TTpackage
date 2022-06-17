@@ -1155,6 +1155,57 @@ interaction_logistic_regression<-function(response, covariate, data, rounding_fa
   return(res.df)
 }
 
+
+#*************************************************************
+# Multivariate logistic regression for paired gene expression data
+# Response must be a numeric vector where 0 indicates failure and 1 success.
+# It an also be specified as a factor (when the first level denotes failure
+# and all others success).
+#*************************************************************
+
+paired_logistic_regression<-function(response, data, data2, suffixes, rounding_factor = 3, sort = FALSE){
+  res.df<-data.frame(Variable_1 = rownames(data),
+                     Odds_Ratio_1 = 0,
+                     CI2.5_1 = 0,
+                     CI97.5_1 = 0,
+                     z_value_1=0,
+                     P_value_1 = 0,
+                     Variable_2 = rownames(data2),
+                     Odds_Ratio_2 = 0,
+                     CI2.5_2 = 0,
+                     CI97.5_2 = 0,
+                     z_value_2=0,
+                     P_value_2 = 0)
+  colnames(res.df)<-gsub("_2", suffixes[2], gsub("_1", suffixes[1], colnames(res.df)))
+
+  for(i in 1:nrow(data)){
+    df<-data.frame(Y=response,
+                   Gene_1=data[i,],
+                   Gene_2=data2[i,],
+                   stringsAsFactors = F)
+    fit<-glm(Y ~ Gene_1+Gene_2, family = binomial, data = df)
+    res.df[i,2:6]<-c(round(exp(coef(fit))[2],rounding_factor),
+                                round(exp(confint.default(fit, level = 0.95))[2,1],rounding_factor),
+                                round(exp(confint.default(fit, level = 0.95))[2,2],rounding_factor),
+                                summary(fit)$coefficients[2,3],
+                                summary(fit)$coefficients[2,4])
+    res.df[i,8:12]<-c(round(exp(coef(fit))[3],rounding_factor),
+                     round(exp(confint.default(fit, level = 0.95))[3,1],rounding_factor),
+                     round(exp(confint.default(fit, level = 0.95))[3,2],rounding_factor),
+                     summary(fit)$coefficients[3,3],
+                     summary(fit)$coefficients[3,4])
+  }
+  res.df$FDR_1<-p.adjust(res.df[,paste0("P_value",suffixes[1])], method="BH")
+  res.df$FDR_2<-p.adjust(res.df[,paste0("P_value",suffixes[2])], method="BH")
+  colnames(res.df)<-gsub("_2", suffixes[2], gsub("_1", suffixes[1], colnames(res.df)))
+  res.df<-res.df[,c(1:6,13,8:12,14)]
+  if(sort){
+    res.df<-res.df[order(res.df$P_value),]
+  }
+  return(res.df)
+}
+
+
 #**************************************************************************************
 #* Comparison of gene set enrichment networks between multiple contrasts
 #**************************************************************************************
