@@ -1163,7 +1163,7 @@ interaction_logistic_regression<-function(response, covariate, data, rounding_fa
 # and all others success).
 #*************************************************************
 
-paired_logistic_regression<-function(response, data, data2, suffixes, rounding_factor = 3, sort = FALSE){
+paired_logistic_regression<-function(response, data, data2, suffixes, rounding_factor = 3){
   res.df<-data.frame(Variable_1 = rownames(data),
                      Odds_Ratio_1 = 0,
                      CI2.5_1 = 0,
@@ -1199,9 +1199,6 @@ paired_logistic_regression<-function(response, data, data2, suffixes, rounding_f
   res.df$FDR_2<-p.adjust(res.df[,paste0("P_value",suffixes[2])], method="BH")
   colnames(res.df)<-gsub("_2", suffixes[2], gsub("_1", suffixes[1], colnames(res.df)))
   res.df<-res.df[,c(1:6,13,8:12,14)]
-  if(sort){
-    res.df<-res.df[order(res.df$P_value),]
-  }
   return(res.df)
 }
 
