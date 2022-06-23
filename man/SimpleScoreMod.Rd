@@ -18,6 +18,7 @@ simpleScoreMod(rankData,
   \item{mysetlist}{A list of gene sets with gene symbols}
   \item{knownDir}{A boolean, determining whether the gene set should be considered to be directional or not. A gene set is directional if the type of genes in it are known i.e. up- or down-regulated. Needs to be specified if the gene set is made of one list only. Set to TRUE by default when the gene set includes two lists of up- and down-regulated genes.}
   \item{centerScore}{A Boolean, specifying whether scores should be centered around 0, default as TRUE. Note: scores never centered if knownDirection = FALSE. Set to TRUE by default when the gene set includes two lists of up- and down-regulated genes.}
+  \item{minSize}{Numeric. Minimum number of genes in the gene set.}
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~

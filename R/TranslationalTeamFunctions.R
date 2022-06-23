@@ -5,7 +5,7 @@
 #* genes or both up- and down-regulated genes
 #*************************************************************
 
-simpleScoreMod<-function(rankData, mysetlist, knownDir = TRUE, centerScore = TRUE){
+simpleScoreMod<-function(rankData, mysetlist, knownDir = TRUE, centerScore = TRUE, minSize = 0){
 
   require(Biobase)
   require(singscore)
@@ -17,7 +17,7 @@ simpleScoreMod<-function(rankData, mysetlist, knownDir = TRUE, centerScore = TRU
     if(class(mysetlist[[i]])=="character"){
       sl<-mysetlist[[i]]
       sl<-sl[sl%in%rownames(rankData)]
-      if(length(sl)>=3){
+      if(length(sl)>=minSize){
         scoretemp<-simpleScore(rankData,upSet = sl, knownDirection = knownDir, centerScore = centerScore)
         score[rownames(score)==names(mysetlist)[i],]<-scoretemp$TotalScore
       }
@@ -26,7 +26,7 @@ simpleScoreMod<-function(rankData, mysetlist, knownDir = TRUE, centerScore = TRU
       sl.up<-sl.up[sl.up%in%rownames(rankData)]
       sl.dn<-mysetlist[[i]][[grep("DN|DOWN",names(mysetlist[[i]]),ignore.case=T)]]
       sl.dn<-sl.dn[sl.dn%in%rownames(rankData)]
-      if(length(sl.up)>=3 & length(sl.dn)>=3){
+      if(length(sl.up)>=minSize & length(sl.dn)>=minSize){
         scoretemp<-simpleScore(rankData,upSet = sl.up, downSet = sl.dn)
         score[rownames(score)==names(mysetlist)[i],]<-scoretemp$TotalScore
       }
