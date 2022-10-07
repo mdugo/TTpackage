@@ -6,8 +6,6 @@
 Given a list of gene sets this function cluster them using a network approach based on similarity in terms of gene content or correlation.
 }
 \usage{
-correlateGeneSets(x)
-}
 correlateGeneSets(cluster_by = c("gene_content","correlation"),
                               similarity_method = c("kappa", "jaccard", "dice", "overlap"),
                               similarity_th = 0,
@@ -26,11 +24,12 @@ correlateGeneSets(cluster_by = c("gene_content","correlation"),
                               gene_content_column=NULL,
                               igraph.vertex.label = NA,
                               igraph.vertex.label.cex = 0.2,
+                              igraph.vertex.size.cex = 1,
                               igraph.vertex.frame.color="black",
                               igraph.edge.color = "black",
                               igraph.mark.border = "black",
-                              legend_cex=0.4
-  )
+                              legend_cex=0.4)
+}
 \arguments{
   \item{cluster_by}{Character. Whether to cluster gene sets by correlation or by gene content. Values = c("gene_content", "correlation")}
   \item{similarity_method}{Character. Method used to calculate similarity between gene sets when cluster_by is "gene_content". Values = c("kappa", "jaccard", "dice", "overlap"). Ignored if cluster_by = "correlation"}
@@ -49,7 +48,7 @@ correlateGeneSets(cluster_by = c("gene_content","correlation"),
   \item{NES_th}{Numerical value. NES threshold used to filter significant gene sets. Required only when GSEA_style = TRUE. Default: 0}
   \item{gene_content_column}{string indicating the name of the column of the enrichment_table containing leading edge genes or genes of the gene set contained in the input list for ORA analysis. Default = NULL}
   \item{igraph.}{Graphical parameters for igraph network}
-  \item{legend_cex}{A numerical value giving the amount by which legend should be magnified relative to the default. A valueo of 1 means no magnification. Default: 0.4.}
+  \item{legend_cex}{A numerical value giving the amount by which legend should be magnified relative to the default. A value of 1 means no magnification. Default: 0.4.}
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~

@@ -56,6 +56,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                               direction_column = NULL,
                               gene_content_column=NULL,
                               igraph.vertex.label = NA, igraph.vertex.label.cex = 0.2,
+                              igraph.vertex.size.cex = 1,
                               igraph.vertex.frame.color="black", igraph.edge.color = "black",
                               igraph.mark.border = "black", legend_cex=0.4){
 
@@ -164,7 +165,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
         if(length(table(cl))>1){
           if(directional == FALSE){
             set.seed(333)
-            clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+            clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(c(carto_pal(12,"Bold")[-12],carto_pal(12,"Safe")[-12])[1:(length(table(V(ig)$Cluster))-1)],"grey"))
             names(clustercol)<-factor(V(ig)$Cluster)
             clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
             clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -172,14 +173,15 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
             coords<-layout_nicely(ig)
             plot.igraph(ig,
                         layout=coords,
-                        vertex.size=V(ig)$FDR,
+                        vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                         vertex.label=igraph.vertex.label,
                         vertex.label.cex=igraph.vertex.label.cex,
                         vertex.frame.color=igraph.vertex.frame.color,
                         vertex.color=clustercol,
                         edge.width = E(ig)$weight,
                         edge.color = igraph.edge.color,
-                        margin=c(0,0,0,0))
+                        margin=c(0,0,0,0),
+                        main=paste0("Gene content\n(Method = ",similarity_method, "; Threshold = ",similarity_th,")"))
             legend("topleft",
                    legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
                    fill = clustercolLegend[names(clustercolLegend) != "Unclustered"],
@@ -193,7 +195,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
           if(directional == TRUE & GSEA_style == TRUE){
             V(ig)$Direction<-res2[,NES_column]
             set.seed(333)
-            clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+            clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(c(carto_pal(12,"Bold")[-12],carto_pal(12,"Safe")[-12])[1:(length(table(V(ig)$Cluster))-1)],"grey"))
             names(clustercol)<-factor(V(ig)$Cluster)
             clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
             clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -210,7 +212,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
             coords<-layout_nicely(ig)
             plot.igraph(ig,
                         layout=coords,
-                        vertex.size=V(ig)$FDR,
+                        vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                         vertex.label=igraph.vertex.label,
                         vertex.label.cex=igraph.vertex.label.cex,
                         vertex.frame.color=igraph.vertex.frame.color,
@@ -222,7 +224,8 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                         mark.expand=10,
                         mark.border = igraph.mark.border,
                         mark.col = clustercolLegend,
-                        margin=c(0,0,0,0))
+                        margin=c(0,0,0,0),
+                        main=paste0("Gene content\n(Method = ",similarity_method, "; Threshold = ",similarity_th,")"))
             legend("topleft",
                    legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
                    fill = clustercolLegend[names(clustercolLegend) != "Unclustered"],
@@ -238,7 +241,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
             } else {
               V(ig)$Direction<-res2$Direction
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(c(carto_pal(12,"Bold")[-12],carto_pal(12,"Safe")[-12])[1:(length(table(V(ig)$Cluster))-1)],"grey"))
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -257,7 +260,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -269,7 +272,8 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                           mark.expand=10,
                           mark.border = igraph.mark.border,
                           mark.col = clustercolLegend,
-                          margin=c(0,0,0,0))
+                          margin=c(0,0,0,0),
+                          main=paste0("Gene content\n(Method = ",similarity_method, "; Threshold = ",similarity_th,")"))
               legend("topleft",
                      legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
                      fill = clustercolLegend[names(clustercolLegend) != "Unclustered"],
@@ -292,14 +296,15 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
           coords<-layout_nicely(ig)
           plot.igraph(ig,
                       layout=coords,
-                      vertex.size=V(ig)$FDR,
+                      vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                       vertex.label=igraph.vertex.label,
                       vertex.label.cex=igraph.vertex.label.cex,
                       vertex.frame.color=igraph.vertex.frame.color,
                       vertex.color="grey80",
                       edge.width = E(ig)$weight,
                       edge.color = igraph.edge.color,
-                      margin=c(0,0,0,0))
+                      margin=c(0,0,0,0),
+                      main=paste0("Gene content\n(Method = ",similarity_method, "; Threshold = ",similarity_th,")"))
         }
         if(directional == TRUE & GSEA_style == TRUE){
           V(ig)$Direction<-res2[,NES_column]
@@ -310,14 +315,15 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
           coords<-layout_nicely(ig)
           plot.igraph(ig,
                       layout=coords,
-                      vertex.size=V(ig)$FDR,
+                      vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                       vertex.label=igraph.vertex.label,
                       vertex.label.cex=igraph.vertex.label.cex,
                       vertex.frame.color=igraph.vertex.frame.color,
                       vertex.color=NEScol,
                       edge.width = E(ig)$weight,
                       edge.color = igraph.edge.color,
-                      margin=c(0,0,0,0))
+                      margin=c(0,0,0,0),
+                      main=paste0("Gene content\n(Method = ",similarity_method, "; Threshold = ",similarity_th,")"))
         }
         if(directional == TRUE & GSEA_style == FALSE){
           if(sum(colnames(res) == "Direction") == 0){
@@ -332,14 +338,15 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
             coords<-layout_nicely(ig)
             plot.igraph(ig,
                         layout=coords,
-                        vertex.size=V(ig)$FDR,
+                        vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                         vertex.label=igraph.vertex.label,
                         vertex.label.cex=igraph.vertex.label.cex,
                         vertex.frame.color=igraph.vertex.frame.color,
                         vertex.color=nodecol,
                         edge.width = E(ig)$weight,
                         edge.color = igraph.edge.color,
-                        margin=c(0,0,0,0))
+                        margin=c(0,0,0,0),
+                        main=paste0("Gene content\n(Method = ",similarity_method, "; Threshold = ",similarity_th,")"))
           }
         }
       }
@@ -412,8 +419,8 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
         if(length(grep("REACTOME|KEGG|BIOCARTA|PID|WP|GOBP",names(setlist)))>0){
           scoreMat2<-simpleScoreMod(rankData = rankMat,
                                     mysetlist = setlist[grep("REACTOME|KEGG|BIOCARTA|PID|WP|GOBP",names(setlist))],
-                                    knownDir = F,
-                                    centerScore = F)
+                                    knownDir = T,
+                                    centerScore = T)
           scoreMat<-rbind(scoreMat1, scoreMat2)
         } else {
           scoreMat<-scoreMat1
@@ -421,8 +428,8 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
       } else {
         scoreMat<-simpleScoreMod(rankData = rankMat,
                                  mysetlist = setlist,
-                                 knownDir = F,
-                                 centerScore = F)
+                                 knownDir = T,
+                                 centerScore = T)
       }
       print("Done.")
       rownames(scoreMat)<-gsub("CUSTOM_", "", rownames(scoreMat))
@@ -450,7 +457,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
 
           if(length(table(cl))>1){
             set.seed(444)
-            clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+            clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(c(carto_pal(12,"Bold")[-12],carto_pal(12,"Safe")[-12])[1:(length(table(V(ig)$Cluster))-1)],"grey"))
             names(clustercol)<-factor(V(ig)$Cluster)
             clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
             clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -458,14 +465,15 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
             coords<-layout_nicely(ig)
             plot.igraph(ig,
                         layout=coords,
-                        vertex.size=V(ig)$FDR,
+                        vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                         vertex.label=igraph.vertex.label,
                         vertex.label.cex=igraph.vertex.label.cex,
                         vertex.frame.color=igraph.vertex.frame.color,
                         vertex.color=clustercol,
                         edge.width = E(ig)$weight,
                         edge.color = igraph.edge.color,
-                        margin=c(0,0,0,0))
+                        margin=c(0,0,0,0),
+                        main=paste0("Correlation\n(Method = ",correlation_method, "; Threshold = ",correl_th,")"))
             legend("topleft",
                    legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
                    fill = clustercolLegend[names(clustercolLegend) != "Unclustered"],
@@ -479,14 +487,15 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
             coords<-layout_nicely(ig)
             plot.igraph(ig,
                         layout=coords,
-                        vertex.size=V(ig)$FDR,
+                        vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                         vertex.label=igraph.vertex.label,
                         vertex.label.cex=igraph.vertex.label.cex,
                         vertex.frame.color=igraph.vertex.frame.color,
                         vertex.color="grey80",
                         edge.width = E(ig)$weight,
                         edge.color = igraph.edge.color,
-                        margin=c(0,0,0,0))
+                        margin=c(0,0,0,0),
+                        main=paste0("Correlation\n(Method = ",correlation_method, "; Threshold = ",correl_th,")"))
           }
         }
       }
@@ -522,7 +531,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
               V(ig)$FDR<--log10(ifelse(res2[,FDR_column]<1e-10, 1e-10, res2[,FDR_column]))
               V(ig)$Direction<-res2[,NES_column]
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(c(carto_pal(12,"Bold")[-12],carto_pal(12,"Safe")[-12])[1:(length(table(V(ig)$Cluster))-1)],"grey"))
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -539,7 +548,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -551,7 +560,8 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                           mark.expand=10,
                           mark.border = igraph.mark.border,
                           mark.col = clustercolLegend,
-                          margin=c(0,0,0,0))
+                          margin=c(0,0,0,0),
+                          main=paste0("Correlation\n(Method = ",correlation_method, "; Threshold = ",correl_th,")"))
               title("Up-regulated",cex.main=2,col.main="black")
               legend("topleft",
                      legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
@@ -575,14 +585,15 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
                           vertex.color=NEScol,
                           edge.width = E(ig)$weight,
                           edge.color = igraph.edge.color,
-                          margin=c(0,0,0,0))
+                          margin=c(0,0,0,0),
+                          main=paste0("Correlation\n(Method = ",correlation_method, "; Threshold = ",correl_th,")"))
               title("Up-regulated",cex.main=2,col.main="black")
             }
           }
@@ -616,7 +627,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
               V(ig)$FDR<--log10(ifelse(res2[,FDR_column]<1e-10, 1e-10, res2[,FDR_column]))
               V(ig)$Direction<-res2[,NES_column]
               set.seed(343)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(c(carto_pal(12,"Bold")[-12],carto_pal(12,"Safe")[-12])[1:(length(table(V(ig)$Cluster))-1)],"grey"))
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -633,7 +644,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -645,7 +656,8 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                           mark.expand=10,
                           mark.border = igraph.mark.border,
                           mark.col = clustercolLegend,
-                          margin=c(0,0,0,0))
+                          margin=c(0,0,0,0),
+                          main=paste0("Correlation\n(Method = ",correlation_method, "; Threshold = ",correl_th,")"))
               title("Down-regulated",cex.main=2,col.main="black")
               legend("topleft",
                      legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
@@ -669,14 +681,15 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
                           vertex.color=NEScol,
                           edge.width = E(ig)$weight,
                           edge.color = igraph.edge.color,
-                          margin=c(0,0,0,0))
+                          margin=c(0,0,0,0),
+                          main=paste0("Correlation\n(Method = ",correlation_method, "; Threshold = ",correl_th,")"))
               title("Down-regulated",cex.main=2,col.main="black")
             }
           }
@@ -723,7 +736,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                 V(ig)$Cluster<-cl.up
                 V(ig)$FDR<--log10(ifelse(res2[,FDR_column]<1e-10, 1e-10, res2[,FDR_column]))
                 set.seed(333)
-                clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+                clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(c(carto_pal(12,"Bold")[-12],carto_pal(12,"Safe")[-12])[1:(length(table(V(ig)$Cluster))-1)],"grey"))
                 names(clustercol)<-factor(V(ig)$Cluster)
                 clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
                 clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -738,7 +751,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                 coords<-layout_nicely(ig)
                 plot.igraph(ig,
                             layout=coords,
-                            vertex.size=V(ig)$FDR,
+                            vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                             vertex.label=igraph.vertex.label,
                             vertex.label.cex=igraph.vertex.label.cex,
                             vertex.frame.color=igraph.vertex.frame.color,
@@ -750,7 +763,8 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                             mark.expand=10,
                             mark.border = igraph.mark.border,
                             mark.col = clustercolLegend,
-                            margin=c(0,0,0,0))
+                            margin=c(0,0,0,0),
+                            main=paste0("Correlation\n(Method = ",correlation_method, "; Threshold = ",correl_th,")"))
                 title("Up-regulated",cex.main=2,col.main="black")
                 legend("topleft",
                        legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
@@ -771,14 +785,15 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                 coords<-layout_nicely(ig)
                 plot.igraph(ig,
                             layout=coords,
-                            vertex.size=V(ig)$FDR,
+                            vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                             vertex.label=igraph.vertex.label,
                             vertex.label.cex=igraph.vertex.label.cex,
                             vertex.frame.color=igraph.vertex.frame.color,
                             vertex.color="red2",
                             edge.width = E(ig)$weight,
                             edge.color = igraph.edge.color,
-                            margin=c(0,0,0,0))
+                            margin=c(0,0,0,0),
+                            main=paste0("Correlation\n(Method = ",correlation_method, "; Threshold = ",correl_th,")"))
                 title("Up-regulated",cex.main=2,col.main="black")
               }
             }
@@ -811,7 +826,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                 V(ig)$Cluster<-cl.dn
                 V(ig)$FDR<--log10(ifelse(res2[,FDR_column]<1e-10, 1e-10, res2[,FDR_column]))
                 set.seed(333)
-                clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+                clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(c(carto_pal(12,"Bold")[-12],carto_pal(12,"Safe")[-12])[1:(length(table(V(ig)$Cluster))-1)],"grey"))
                 names(clustercol)<-factor(V(ig)$Cluster)
                 clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
                 clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -826,7 +841,7 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                 coords<-layout_nicely(ig)
                 plot.igraph(ig,
                             layout=coords,
-                            vertex.size=V(ig)$FDR,
+                            vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                             vertex.label=igraph.vertex.label,
                             vertex.label.cex=igraph.vertex.label.cex,
                             vertex.frame.color=igraph.vertex.frame.color,
@@ -838,7 +853,8 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                             mark.expand=10,
                             mark.border = igraph.mark.border,
                             mark.col = clustercolLegend,
-                            margin=c(0,0,0,0))
+                            margin=c(0,0,0,0),
+                            main=paste0("Correlation\n(Method = ",correlation_method, "; Threshold = ",correl_th,")"))
                 title("Down-regulated",cex.main=2,col.main="black")
                 legend("topleft",
                        legend = names(clustercolLegend)[names(clustercolLegend) != "Unclustered"],
@@ -859,14 +875,15 @@ correlateGeneSets <- function(cluster_by = c("gene_content","correlation"),
                 coords<-layout_nicely(ig)
                 plot.igraph(ig,
                             layout=coords,
-                            vertex.size=V(ig)$FDR,
+                            vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                             vertex.label=igraph.vertex.label,
                             vertex.label.cex=igraph.vertex.label.cex,
                             vertex.frame.color=igraph.vertex.frame.color,
                             vertex.color="royalblue",
                             edge.width = E(ig)$weight,
                             edge.color = igraph.edge.color,
-                            margin=c(0,0,0,0))
+                            margin=c(0,0,0,0),
+                            main=paste0("Correlation\n(Method = ",correlation_method, "; Threshold = ",correl_th,")"))
                 title("Down-regulated",cex.main=2,col.main="black")
               }
             }
@@ -1023,101 +1040,49 @@ sankeyPlot<-function(df, node_width=0.2, node_space=10, node_color="black", node
 # and all others success).
 #*************************************************************
 
-logistic_regression<-function(response, covariate1=NULL, covariate2=NULL, covariate3=NULL, covariate4=NULL, data, rounding_factor = 3, sort = FALSE){
-  res.df<-data.frame(Variable = rownames(data),
-                     Odds_Ratio_Variable = 0,
-                     CI2.5_Variable = 0,
-                     CI97.5_Variable = 0,
-                     z_value_Variable = 0,
-                     P_value_Variable = 0,
-                     Odds_Ratio_Covariate1 = 0,
-                     CI2.5_Covariate1 = 0,
-                     CI97.5_Covariate1 = 0,
-                     z_value_Covariate1 = 0,
-                     P_value_Covariate1 = 0,
-                     Odds_Ratio_Covariate2 = 0,
-                     CI2.5_Covariate2 = 0,
-                     CI97.5_Covariate2 = 0,
-                     z_value_Covariate2 = 0,
-                     P_value_Covariate2 = 0,
-                     Odds_Ratio_Covariate3 = 0,
-                     CI2.5_Covariate3 = 0,
-                     CI97.5_Covariate3 = 0,
-                     z_value_Covariate3 = 0,
-                     P_value_Covariate3 = 0,
-                     Odds_Ratio_Covariate4 = 0,
-                     CI2.5_Covariate4 = 0,
-                     CI97.5_Covariate4 = 0,
-                     z_value_Covariate4 = 0,
-                     P_value_Covariate4 = 0)
-  for(i in 1:nrow(data)){
-    if(is.null(covariate1)){
-      covariate1<-rep(NA, ncol(data))
-    }
-    if(is.null(covariate2)){
-      covariate2<-rep(NA, ncol(data))
-    }
-    if(is.null(covariate3)){
-      covariate3<-rep(NA, ncol(data))
-    }
-    if(is.null(covariate4)){
-      covariate4<-rep(NA, ncol(data))
-    }
-    df<-data.frame(Y=response,
-                   Gene=data[i,],
-                   Covariate1=covariate1,
-                   Covariate2=covariate2,
-                   Covariate3=covariate3,
-                   Covariate4=covariate4,
-                   stringsAsFactors = F)
-    df<-df[,colSums(is.na(df))<nrow(df)]
-    res.df<-res.df[,grep(paste(c("Variable",grep("Covariate",  colnames(df), value=T)), collapse="|"), colnames(res.df))]
-    nCov<-grep("Covariate",  colnames(df), value=T)
-    if(length(nCov) == 0){
-      fit<-glm(Y ~ Gene, family = binomial, data = df)
-      res.df[i,grep("_Variable", colnames(res.df))]<-c(round(exp(coef(fit))[2],rounding_factor),
-                                                       round(exp(confint.default(fit, level = 0.95))[2,1],rounding_factor),
-                                                       round(exp(confint.default(fit, level = 0.95))[2,2],rounding_factor),
-                                                       summary(fit)$coefficients[2,3],
-                                                       summary(fit)$coefficients[2,4])
-    }
-    if(length(nCov) > 0){
-      f1 <- as.formula(paste("Y ~ Gene +", paste(grep("Covariate", colnames(df), value=T), collapse="+")))
-      fit<-glm(f1, family = binomial, data = df)
-      res.df[i,grep("_Variable", colnames(res.df))]<-c(round(exp(coef(fit))[2],rounding_factor),
-                                                       round(exp(confint.default(fit, level = 0.95))[2,1],rounding_factor),
-                                                       round(exp(confint.default(fit, level = 0.95))[2,2],rounding_factor),
-                                                       summary(fit)$coefficients[2,3],
-                                                       summary(fit)$coefficients[2,4])
-      k=3
-      for(j in 1:length(nCov)){
-        res.df[i,grep(nCov[j], colnames(res.df))]<-c(round(exp(coef(fit))[k],rounding_factor),
-                                                     round(exp(confint.default(fit, level = 0.95))[k,1],rounding_factor),
-                                                     round(exp(confint.default(fit, level = 0.95))[k,2],rounding_factor),
-                                                     summary(fit)$coefficients[k,3],
-                                                     summary(fit)$coefficients[k,4])
-        k<-k+1
-      }
-    }
+logistic_regression<-function(response, covariates=NULL, data, rounding_factor = 3, sort = FALSE){
+  res.df<-data.frame(Variable = rownames(data), matrix(0, nrow = nrow(data), ncol=(length(covariates)+1)*5))
+  colnames(res.df)[-1]<-paste(rep(c("OR","CI2.5","CI97.5","Z","P"),length(covariates)+1),rep(c("Variable",covariates), each=5),sep="_")
+
+  Y<-pData(data)[,response]
+  covs<-data.frame(pData(data)[,covariates])
+  if(is.null(covariates)){
+    resTemp<-apply(exprs(data), 1, function(x){
+      z<-glm(Y ~ x, family = binomial)
+      ee<-c(round(exp(coef(z))[2],rounding_factor),
+            round(exp(confint.default(z, level = 0.95))[2,1],rounding_factor),
+            round(exp(confint.default(z, level = 0.95))[2,2],rounding_factor),
+            summary(z)$coefficients[2,3],
+            summary(z)$coefficients[2,4])
+    })
+    res.df[,-1]<-t(resTemp)
+    res.df$FDR_Variable<-p.adjust(res.df$P_Variable, method="BH")
   }
-  if(length(nCov) > 0){
-    fdr<-matrix(0, ncol=length(nCov), nrow=nrow(res.df))
-    colnames(fdr)<-paste("FDR",nCov,sep="_")
-    res.df$FDR_Variable<-p.adjust(res.df$P_value_Variable, method="BH")
-    for(z in 1:ncol(fdr)){
-      fdr[,z]<-p.adjust(res.df[,grep(paste0("P_value_", nCov[z]), colnames(res.df))], method="BH")
-    }
+  if(!is.null(covariates)){
+    colnames(covs)<-covariates
+    resTemp<-apply(exprs(data), 1, function(x){
+      df<-data.frame(Y,
+                     Gene=x,
+                     covs,
+                     stringsAsFactors = F)
+      f1 <- as.formula(paste("Y ~ Gene +", paste(colnames(df)[3:ncol(df)], collapse="+")))
+      z<-glm(f1, family = binomial, data = df)
+      ee<-matrix(as.vector(rbind(round(exp(coef(z))[-1],rounding_factor),
+                                 round(exp(confint.default(z, level = 0.95))[-1,1],rounding_factor),
+                                 round(exp(confint.default(z, level = 0.95))[-1,2],rounding_factor),
+                                 summary(z)$coefficients[-1,3],
+                                 summary(z)$coefficients[-1,4])),nrow=1)
+    })
+    res.df[,-1]<-t(resTemp)
+    fdr<-apply(res.df[,grep("^P_",colnames(res.df))], 2, p.adjust, method="BH")
+    colnames(fdr)<-gsub("P_","FDR_",colnames(fdr))
     res.df<-as.data.frame(cbind(res.df, fdr))
-    colOrder<-grep("Variable", colnames(res.df), value=T)
-    for(z in 1:length(nCov)){
-      colOrder<-c(colOrder, grep(nCov[z], colnames(res.df), value=T))
-    }
-    res.df<-res.df[,colOrder]
-  } else {
-    res.df$FDR_Variable<-p.adjust(res.df$P_value_Variable, method="BH")
+    index<-unname(unlist(sapply(c("Variable",covariates), function(x){
+      grep(x, colnames(res.df))})))
+    res.df<-res.df[,index]
   }
   if(sort){
-    res.df<-res.df[order(res.df$P_value_Variable),]
+    res.df<-res.df[order(res.df$P_Variable),]
   }
   return(res.df)
 }
@@ -1129,79 +1094,242 @@ logistic_regression<-function(response, covariate1=NULL, covariate2=NULL, covari
 # and all others success).
 #*************************************************************
 
-interaction_logistic_regression<-function(response, covariate, data, rounding_factor = 3, sort = FALSE){
-  res.df<-data.frame(Variable = rownames(data),
-                     Odds_Ratio = 0,
-                     CI2.5 = 0,
-                     CI97.5 = 0,
-                     z_value=0,
-                     P_value = 0)
+
+interaction_logistic_regression<-function(response, covariate_interaction, covariates_adjustment = NULL, data, rounding_factor = 3, sort = FALSE){
+  res.df<-data.frame(Variable = rownames(data), matrix(0, nrow = nrow(data), ncol=(length(covariates_adjustment)+3)*5))
+  colnames(res.df)[-1]<-paste(rep(c("OR","CI2.5","CI97.5","Z","P"),length(covariates_adjustment)+3),rep(c("Variable",covariate_interaction,"Interaction",covariates_adjustment), each=5),sep="_")
+
   for(i in 1:nrow(data)){
-    df<-data.frame(Y=response,
-                   Gene=data[i,],
-                   Covariate=covariate,
+    df<-data.frame(Y=pData(data)[,response],
+                   Gene=exprs(data)[i,],
+                   Covariate_interaction=pData(data)[,covariate_interaction],
+                   pData(data)[,covariates_adjustment],
                    stringsAsFactors = F)
-    fit<-glm(Y ~ Gene*Covariate, family = binomial, data = df)
-    res.df[i,2:ncol(res.df)]<-c(round(exp(coef(fit))[4],rounding_factor),
-                                round(exp(confint.default(fit, level = 0.95))[4,1],rounding_factor),
-                                round(exp(confint.default(fit, level = 0.95))[4,2],rounding_factor),
-                                summary(fit)$coefficients[4,3],
-                                summary(fit)$coefficients[4,4])
+    colnames(df)[grep("pData",colnames(df))]<-covariates_adjustment
+    if(is.null(covariates_adjustment)){
+
+      fit<-glm(Y ~ Gene*Covariate_interaction, family = binomial, data = df)
+      res.df[i,grep("_Variable", colnames(res.df))]<-c(round(exp(coef(fit))[2],rounding_factor),
+                                                       round(exp(confint.default(fit, level = 0.95))[2,1],rounding_factor),
+                                                       round(exp(confint.default(fit, level = 0.95))[2,2],rounding_factor),
+                                                       summary(fit)$coefficients[2,3],
+                                                       summary(fit)$coefficients[2,4])
+      res.df[i,grep(covariate_interaction, colnames(res.df))]<-c(round(exp(coef(fit))[3],rounding_factor),
+                                                                 round(exp(confint.default(fit, level = 0.95))[3,1],rounding_factor),
+                                                                 round(exp(confint.default(fit, level = 0.95))[3,2],rounding_factor),
+                                                                 summary(fit)$coefficients[3,3],
+                                                                 summary(fit)$coefficients[3,4])
+      res.df[i,grep("Interaction", colnames(res.df))]<-c(round(exp(coef(fit))[4],rounding_factor),
+                                                         round(exp(confint.default(fit, level = 0.95))[4,1],rounding_factor),
+                                                         round(exp(confint.default(fit, level = 0.95))[4,2],rounding_factor),
+                                                         summary(fit)$coefficients[4,3],
+                                                         summary(fit)$coefficients[4,4])
+    }
+    if(!is.null(covariates_adjustment)){
+      f1 <- as.formula(paste("Y ~ Gene * Covariate_interaction +", paste(colnames(df)[4:ncol(df)], collapse="+")))
+      fit<-glm(f1, family = binomial, data = df)
+      res.df[i,grep("_Variable", colnames(res.df))]<-c(round(exp(coef(fit))[2],rounding_factor),
+                                                       round(exp(confint.default(fit, level = 0.95))[2,1],rounding_factor),
+                                                       round(exp(confint.default(fit, level = 0.95))[2,2],rounding_factor),
+                                                       summary(fit)$coefficients[2,3],
+                                                       summary(fit)$coefficients[2,4])
+      res.df[i,grep(covariate_interaction, colnames(res.df))]<-c(round(exp(coef(fit))[3],rounding_factor),
+                                                                 round(exp(confint.default(fit, level = 0.95))[3,1],rounding_factor),
+                                                                 round(exp(confint.default(fit, level = 0.95))[3,2],rounding_factor),
+                                                                 summary(fit)$coefficients[3,3],
+                                                                 summary(fit)$coefficients[3,4])
+      res.df[i,grep("Interaction", colnames(res.df))]<-c(round(exp(coef(fit))[4+length(covariates_adjustment)],rounding_factor),
+                                                         round(exp(confint.default(fit, level = 0.95))[4+length(covariates_adjustment),1],rounding_factor),
+                                                         round(exp(confint.default(fit, level = 0.95))[4+length(covariates_adjustment),2],rounding_factor),
+                                                         summary(fit)$coefficients[4+length(covariates_adjustment),3],
+                                                         summary(fit)$coefficients[4+length(covariates_adjustment),4])
+      k=4
+      for(j in 1:length(covariates_adjustment)){
+        res.df[i,grep(covariates_adjustment[j], colnames(res.df))]<-c(round(exp(coef(fit))[k],rounding_factor),
+                                                                      round(exp(confint.default(fit, level = 0.95))[k,1],rounding_factor),
+                                                                      round(exp(confint.default(fit, level = 0.95))[k,2],rounding_factor),
+                                                                      summary(fit)$coefficients[k,3],
+                                                                      summary(fit)$coefficients[k,4])
+        k<-k+1
+      }
+    }
   }
-  res.df$FDR<-p.adjust(res.df$P_value, method="BH")
+  fdr<-res.df[,grep("^P_",colnames(res.df))]
+  colnames(fdr)<-gsub("^P_","FDR_",colnames(fdr))
+  fdr<-apply(fdr, 2, p.adjust, "BH")
+  res.df<-as.data.frame(cbind(res.df, fdr))
+  colOrder<-grep("Variable", colnames(res.df), value=T)
+  colOrder<-c(colOrder,grep(covariate_interaction, colnames(res.df), value=T))
+  colOrder<-c(colOrder,grep("Interaction", colnames(res.df), value=T))
+
+  if(!is.null(covariates_adjustment)){
+    for(z in 1:length(covariates_adjustment)){
+      colOrder<-c(colOrder, grep(covariates_adjustment[z], colnames(res.df), value=T))
+    }
+  }
+  res.df<-res.df[,colOrder]
   if(sort){
-    res.df<-res.df[order(res.df$P_value),]
+    res.df<-res.df[order(res.df$P_Interaction),]
   }
   return(res.df)
 }
 
 
-#*************************************************************
+
+#****************************************************************************
 # Multivariate logistic regression for paired gene expression data
 # Response must be a numeric vector where 0 indicates failure and 1 success.
 # It an also be specified as a factor (when the first level denotes failure
 # and all others success).
-#*************************************************************
+#****************************************************************************
 
-paired_logistic_regression<-function(response, data, data2, suffixes, rounding_factor = 3){
-  res.df<-data.frame(Variable_1 = rownames(data),
-                     Odds_Ratio_1 = 0,
-                     CI2.5_1 = 0,
-                     CI97.5_1 = 0,
-                     z_value_1=0,
-                     P_value_1 = 0,
-                     Variable_2 = rownames(data2),
-                     Odds_Ratio_2 = 0,
-                     CI2.5_2 = 0,
-                     CI97.5_2 = 0,
-                     z_value_2=0,
-                     P_value_2 = 0)
-  colnames(res.df)<-gsub("_2", suffixes[2], gsub("_1", suffixes[1], colnames(res.df)))
+
+paired_logistic_regression_additive<-function(response, data, data2, covariates_adjustment=NULL, suffixes, rounding_factor = 3){
+  res.df<-data.frame(Variable = rownames(data), matrix(0, nrow = nrow(data), ncol=(length(covariates_adjustment)+2)*5))
+  colnames(res.df)[-1]<-paste(rep(c("OR","CI2.5","CI97.5","Z","P"),length(covariates_adjustment)+2),rep(c(suffixes,covariates_adjustment), each=5),sep="_")
 
   for(i in 1:nrow(data)){
-    df<-data.frame(Y=response,
-                   Gene_1=data[i,],
-                   Gene_2=data2[i,],
+    df<-data.frame(Y=pData(data)[,response],
+                   Gene_1=exprs(data)[i,],
+                   Gene_2=exprs(data2)[i,],
+                   pData(data)[,covariates_adjustment],
                    stringsAsFactors = F)
-    fit<-glm(Y ~ Gene_1+Gene_2, family = binomial, data = df)
-    res.df[i,2:6]<-c(round(exp(coef(fit))[2],rounding_factor),
-                                round(exp(confint.default(fit, level = 0.95))[2,1],rounding_factor),
-                                round(exp(confint.default(fit, level = 0.95))[2,2],rounding_factor),
-                                summary(fit)$coefficients[2,3],
-                                summary(fit)$coefficients[2,4])
-    res.df[i,8:12]<-c(round(exp(coef(fit))[3],rounding_factor),
-                     round(exp(confint.default(fit, level = 0.95))[3,1],rounding_factor),
-                     round(exp(confint.default(fit, level = 0.95))[3,2],rounding_factor),
-                     summary(fit)$coefficients[3,3],
-                     summary(fit)$coefficients[3,4])
+    colnames(df)[grep("pData",colnames(df))]<-covariates_adjustment
+    if(is.null(covariates_adjustment)){
+      fit<-glm(Y ~ Gene_1 + Gene_2, family = binomial, data = df)
+      res.df[i,grep(suffixes[1],colnames(res.df))]<-c(round(exp(coef(fit))[2],rounding_factor),
+                                                      round(exp(confint.default(fit, level = 0.95))[2,1],rounding_factor),
+                                                      round(exp(confint.default(fit, level = 0.95))[2,2],rounding_factor),
+                                                      summary(fit)$coefficients[2,3],
+                                                      summary(fit)$coefficients[2,4])
+      res.df[i,grep(suffixes[2],colnames(res.df))]<-c(round(exp(coef(fit))[3],rounding_factor),
+                                                      round(exp(confint.default(fit, level = 0.95))[3,1],rounding_factor),
+                                                      round(exp(confint.default(fit, level = 0.95))[3,2],rounding_factor),
+                                                      summary(fit)$coefficients[3,3],
+                                                      summary(fit)$coefficients[3,4])
+    }
+    if(!is.null(covariates_adjustment)){
+      f1 <- as.formula(paste("Y ~ Gene_1 + Gene_2 +", paste(colnames(df)[3:ncol(df)], collapse="+")))
+      fit<-glm(f1, family = binomial, data = df)
+      res.df[i,grep(suffixes[1], colnames(res.df))]<-c(round(exp(coef(fit))[2],rounding_factor),
+                                                       round(exp(confint.default(fit, level = 0.95))[2,1],rounding_factor),
+                                                       round(exp(confint.default(fit, level = 0.95))[2,2],rounding_factor),
+                                                       summary(fit)$coefficients[2,3],
+                                                       summary(fit)$coefficients[2,4])
+      res.df[i,grep(suffixes[2], colnames(res.df))]<-c(round(exp(coef(fit))[3],rounding_factor),
+                                                       round(exp(confint.default(fit, level = 0.95))[3,1],rounding_factor),
+                                                       round(exp(confint.default(fit, level = 0.95))[3,2],rounding_factor),
+                                                       summary(fit)$coefficients[3,3],
+                                                       summary(fit)$coefficients[3,4])
+      k=4
+      for(j in 1:length(covariates_adjustment)){
+        res.df[i,grep(covariates_adjustment[j], colnames(res.df))]<-c(round(exp(coef(fit))[k],rounding_factor),
+                                                                      round(exp(confint.default(fit, level = 0.95))[k,1],rounding_factor),
+                                                                      round(exp(confint.default(fit, level = 0.95))[k,2],rounding_factor),
+                                                                      summary(fit)$coefficients[k,3],
+                                                                      summary(fit)$coefficients[k,4])
+        k<-k+1
+      }
+    }
   }
-  res.df$FDR_1<-p.adjust(res.df[,paste0("P_value",suffixes[1])], method="BH")
-  res.df$FDR_2<-p.adjust(res.df[,paste0("P_value",suffixes[2])], method="BH")
-  colnames(res.df)<-gsub("_2", suffixes[2], gsub("_1", suffixes[1], colnames(res.df)))
-  res.df<-res.df[,c(1:6,13,8:12,14)]
+  fdr<-res.df[,grep("^P_",colnames(res.df))]
+  colnames(fdr)<-gsub("^P_","FDR_",colnames(fdr))
+  fdr<-apply(fdr, 2, p.adjust, "BH")
+  res.df<-as.data.frame(cbind(res.df, fdr))
+  colOrder<-c("Variable",grep(suffixes[1], colnames(res.df), value=T))
+  colOrder<-c(colOrder,grep(suffixes[2], colnames(res.df), value=T))
+
+  if(!is.null(covariates_adjustment)){
+    for(z in 1:length(covariates_adjustment)){
+      colOrder<-c(colOrder, grep(covariates_adjustment[z], colnames(res.df), value=T))
+    }
+  }
+  res.df<-res.df[,colOrder]
   return(res.df)
 }
 
+#****************************************************************************
+# Multivariate logistic regression for paired gene expression data
+# Response must be a numeric vector where 0 indicates failure and 1 success.
+# It an also be specified as a factor (when the first level denotes failure
+# and all others success).
+# This function consider interaction between the paired data
+#****************************************************************************
+
+paired_logistic_regression_interaction<-function(response, data, data2, covariates_adjustment=NULL, suffixes, rounding_factor = 3){
+  res.df<-data.frame(Variable = rownames(data), matrix(0, nrow = nrow(data), ncol=(length(covariates_adjustment)+3)*5))
+  colnames(res.df)[-1]<-paste(rep(c("OR","CI2.5","CI97.5","Z","P"),length(covariates_adjustment)+3),rep(c(suffixes,"Interaction",covariates_adjustment), each=5),sep="_")
+
+  for(i in 1:nrow(data)){
+    df<-data.frame(Y=pData(data)[,response],
+                   Gene_1=exprs(data)[i,],
+                   Gene_2=exprs(data2)[i,],
+                   pData(data)[,covariates_adjustment],
+                   stringsAsFactors = F)
+    colnames(df)[grep("pData",colnames(df))]<-covariates_adjustment
+    if(is.null(covariates_adjustment)){
+      fit<-glm(Y ~ Gene_1 * Gene_2, family = binomial, data = df)
+      res.df[i,grep(suffixes[1],colnames(res.df))]<-c(round(exp(coef(fit))[2],rounding_factor),
+                                                      round(exp(confint.default(fit, level = 0.95))[2,1],rounding_factor),
+                                                      round(exp(confint.default(fit, level = 0.95))[2,2],rounding_factor),
+                                                      summary(fit)$coefficients[2,3],
+                                                      summary(fit)$coefficients[2,4])
+      res.df[i,grep(suffixes[2],colnames(res.df))]<-c(round(exp(coef(fit))[3],rounding_factor),
+                                                      round(exp(confint.default(fit, level = 0.95))[3,1],rounding_factor),
+                                                      round(exp(confint.default(fit, level = 0.95))[3,2],rounding_factor),
+                                                      summary(fit)$coefficients[3,3],
+                                                      summary(fit)$coefficients[3,4])
+      res.df[i,grep("Interaction",colnames(res.df))]<-c(round(exp(coef(fit))[4],rounding_factor),
+                                                        round(exp(confint.default(fit, level = 0.95))[4,1],rounding_factor),
+                                                        round(exp(confint.default(fit, level = 0.95))[4,2],rounding_factor),
+                                                        summary(fit)$coefficients[4,3],
+                                                        summary(fit)$coefficients[4,4])
+    }
+    if(!is.null(covariates_adjustment)){
+      f1 <- as.formula(paste("Y ~ Gene_1 * Gene_2 +", paste(colnames(df)[3:ncol(df)], collapse="+")))
+      fit<-glm(f1, family = binomial, data = df)
+      res.df[i,grep(suffixes[1], colnames(res.df))]<-c(round(exp(coef(fit))[2],rounding_factor),
+                                                       round(exp(confint.default(fit, level = 0.95))[2,1],rounding_factor),
+                                                       round(exp(confint.default(fit, level = 0.95))[2,2],rounding_factor),
+                                                       summary(fit)$coefficients[2,3],
+                                                       summary(fit)$coefficients[2,4])
+      res.df[i,grep(suffixes[2], colnames(res.df))]<-c(round(exp(coef(fit))[3],rounding_factor),
+                                                       round(exp(confint.default(fit, level = 0.95))[3,1],rounding_factor),
+                                                       round(exp(confint.default(fit, level = 0.95))[3,2],rounding_factor),
+                                                       summary(fit)$coefficients[3,3],
+                                                       summary(fit)$coefficients[3,4])
+      res.df[i,grep("Interaction",colnames(res.df))]<-c(round(exp(coef(fit))[4+length(covariates_adjustment)],rounding_factor),
+                                                        round(exp(confint.default(fit, level = 0.95))[4+length(covariates_adjustment),1],rounding_factor),
+                                                        round(exp(confint.default(fit, level = 0.95))[4+length(covariates_adjustment),2],rounding_factor),
+                                                        summary(fit)$coefficients[4+length(covariates_adjustment),3],
+                                                        summary(fit)$coefficients[4+length(covariates_adjustment),4])
+      k=4
+      for(j in 1:length(covariates_adjustment)){
+        res.df[i,grep(covariates_adjustment[j], colnames(res.df))]<-c(round(exp(coef(fit))[k],rounding_factor),
+                                                                      round(exp(confint.default(fit, level = 0.95))[k,1],rounding_factor),
+                                                                      round(exp(confint.default(fit, level = 0.95))[k,2],rounding_factor),
+                                                                      summary(fit)$coefficients[k,3],
+                                                                      summary(fit)$coefficients[k,4])
+        k<-k+1
+      }
+    }
+  }
+  fdr<-res.df[,grep("^P_",colnames(res.df))]
+  colnames(fdr)<-gsub("^P_","FDR_",colnames(fdr))
+  fdr<-apply(fdr, 2, p.adjust, "BH")
+  res.df<-as.data.frame(cbind(res.df, fdr))
+  colOrder<-c("Variable",grep(suffixes[1], colnames(res.df), value=T))
+  colOrder<-c(colOrder,grep(suffixes[2], colnames(res.df), value=T))
+  colOrder<-c(colOrder,grep("Interaction", colnames(res.df), value=T))
+
+  if(!is.null(covariates_adjustment)){
+    for(z in 1:length(covariates_adjustment)){
+      colOrder<-c(colOrder, grep(covariates_adjustment[z], colnames(res.df), value=T))
+    }
+  }
+  res.df<-res.df[,colOrder]
+  return(res.df)
+}
 
 #**************************************************************************************
 #* Comparison of gene set enrichment networks between multiple contrasts
@@ -1226,6 +1354,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
                                       direction_column = NULL,
                                       gene_content_column = NULL,
                                       igraph.vertex.label = NA,
+                                      igraph.vertex.size.cex = 1,
                                       igraph.vertex.label.cex = 0.2,
                                       igraph.vertex.frame.color = "black",
                                       igraph.edge.color = "black",
@@ -1241,9 +1370,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
   require(dplyr)
   require(ggplot2)
   require(igraph)
-  require(lattice)
   require(msigdbr)
-  require(randomcoloR)
   require(rcartocolor)
   require(RColorBrewer)
   require(simplifyEnrichment)
@@ -1252,6 +1379,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
 
   enrichList_sig<-lapply(enrichment_list, function(x)x[x[,FDR_column] < FDR_th & abs(x[,NES_column]) >= NES_th,])
   sig<-unique(unlist(lapply(enrichList_sig, function(x)x[,gene_set_name_column])))
+  sig<-sig[!is.na(sig)]
 
   if(length(sig) == 0){
     print("No significant gene sets found at provided thresholds.")
@@ -1347,7 +1475,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               names(markg)<-unique(cl)
               markg<-markg[names(markg)!="Unclustered"]
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = carto_pal(12,"Bold")[c(1:(length(table(V(ig)$Cluster))-1),12)])
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -1355,7 +1483,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -1398,7 +1526,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               names(markg)<-unique(cl)
               markg<-markg[names(markg)!="Unclustered"]
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = carto_pal(12,"Bold")[c(1:(length(table(V(ig)$Cluster))-1),12)])
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -1406,7 +1534,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -1454,7 +1582,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               names(markg)<-unique(cl)
               markg<-markg[names(markg)!="Unclustered"]
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = carto_pal(12,"Bold")[c(1:(length(table(V(ig)$Cluster))-1),12)])
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -1462,7 +1590,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -1499,7 +1627,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-ifelse(foo[,FDR_column] < FDR_th, "gold", "grey80")
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = carto_pal(12,"Bold")[c(1:(length(table(V(ig)$Cluster))-1),12)])
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -1507,7 +1635,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -1531,7 +1659,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-ifelse(foo[,FDR_column] < FDR_th & foo[,NES_column] >= NES_th, "red2", ifelse(foo[,FDR_column] < FDR_th & foo[,NES_column] <= -NES_th, "royalblue", "grey80"))
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = carto_pal(12,"Bold")[c(1:(length(table(V(ig)$Cluster))-1),12)])
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -1539,7 +1667,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -1568,7 +1696,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-foo$Color
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = carto_pal(12,"Bold")[c(1:(length(table(V(ig)$Cluster))-1),12)])
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -1576,7 +1704,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -1661,8 +1789,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
         if(length(grep("REACTOME|KEGG|BIOCARTA|PID|WP|GOBP",names(setlist)))>0){
           scoreMat2<-simpleScoreMod(rankData = rankMat,
                                     mysetlist = setlist[grep("REACTOME|KEGG|BIOCARTA|PID|WP|GOBP",names(setlist))],
-                                    knownDir = F,
-                                    centerScore = F)
+                                    knownDir = T,
+                                    centerScore = T)
           scoreMat<-rbind(scoreMat1, scoreMat2)
         } else {
           scoreMat<-scoreMat1
@@ -1670,8 +1798,8 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
       } else {
         scoreMat<-simpleScoreMod(rankData = rankMat,
                                  mysetlist = setlist,
-                                 knownDir = F,
-                                 centerScore = F)
+                                 knownDir = T,
+                                 centerScore = T)
       }
       print("Done.")
       rownames(scoreMat)<-gsub("CUSTOM_", "", rownames(scoreMat))
@@ -1716,7 +1844,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               names(markg)<-unique(cl)
               markg<-markg[names(markg)!="Unclustered"]
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = carto_pal(12,"Bold")[c(1:(length(table(V(ig)$Cluster))-1),12)])
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -1724,7 +1852,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -1766,7 +1894,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               names(markg)<-unique(cl)
               markg<-markg[names(markg)!="Unclustered"]
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = carto_pal(12,"Bold")[c(1:(length(table(V(ig)$Cluster))-1),12)])
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -1774,7 +1902,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -1822,7 +1950,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               names(markg)<-unique(cl)
               markg<-markg[names(markg)!="Unclustered"]
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = carto_pal(12,"Bold")[c(1:(length(table(V(ig)$Cluster))-1),12)])
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -1830,7 +1958,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -1867,7 +1995,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-ifelse(foo[,FDR_column] < FDR_th, "gold", "grey80")
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = carto_pal(12,"Bold")[c(1:(length(table(V(ig)$Cluster))-1),12)])
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -1875,7 +2003,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -1899,7 +2027,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-ifelse(foo[,FDR_column] < FDR_th & foo[,NES_column] >= NES_th, "red2", ifelse(foo[,FDR_column] < FDR_th & foo[,NES_column] <= -NES_th, "royalblue", "grey80"))
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = carto_pal(12,"Bold")[c(1:(length(table(V(ig)$Cluster))-1),12)])
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -1907,7 +2035,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -1936,7 +2064,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               V(ig)$FDR<--log10(ifelse(foo[,FDR_column] < 1e-10, 1e-10, foo[,FDR_column]))
               V(ig)$Sig<-foo$Color
               set.seed(333)
-              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = c(distinctColorPalette(k=length(unique(V(ig)$Cluster))-1),"grey80"))
+              clustercol<-level.colors(x=as.numeric(factor(V(ig)$Cluster)), at=c(0:length(unique(V(ig)$Cluster))), col.regions = carto_pal(12,"Bold")[c(1:(length(table(V(ig)$Cluster))-1),12)])
               names(clustercol)<-factor(V(ig)$Cluster)
               clustercolLegend<-structure(unique(clustercol), names = unique(names(clustercol)))
               clustercolLegend<-clustercolLegend[order(names(clustercolLegend))]
@@ -1944,7 +2072,7 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
               coords<-layout_nicely(ig)
               plot.igraph(ig,
                           layout=coords,
-                          vertex.size=V(ig)$FDR,
+                          vertex.size=V(ig)$FDR*igraph.vertex.size.cex,
                           vertex.label=igraph.vertex.label,
                           vertex.label.cex=igraph.vertex.label.cex,
                           vertex.frame.color=igraph.vertex.frame.color,
@@ -1962,6 +2090,106 @@ compareEnrichmentNetworks <- function(cluster_by = c("gene_content", "correlatio
   }
 }
 
+
+
+#********************************************************
+#gsea interaction
+#********************************************************
+gseaInteraction<-function(data, phenotype, subsetting_variable, nPerm=1000, pheno_factor_levels, pathways, seed=123, simulate_ranking=TRUE, test=c("t-test","lm","logistic"), ranks=NULL){
+  if(simulate_ranking){
+    require(Rfast)
+    require(Rfast2)
+    nClasses<-names(table(pData(data)[,subsetting_variable]))
+    ESlist<-vector("list",length=length(nClasses))
+    names(ESlist)<-nClasses
+    rankingList<-ESlist
+    for(i in names(ESlist)){
+      subData<-data[,pData(data)[,subsetting_variable]==i]
+      Y<-as.numeric(factor(pData(subData)[,phenotype],levels=pheno_factor_levels))
+      dataTransp<-t(exprs(subData))
+      set.seed(seed)
+      if(test=="t-test"){
+        realRanking<-ttests(x=dataTransp,ina=Y)[,1]
+        rankingMat<-replicate(nPerm,ttests(x=dataTransp,ina=sample(Y))[,1])
+      }
+      if(test=="lm"){
+        realRanking<-regression(x=dataTransp,y=Y)[,1]
+        rankingMat<-replicate(nPerm,regression(x=dataTransp,y=sample(Y))[,1])
+      }
+      if(test=="logistic"){
+        Y<-as.numeric(as.vector(pData(subData)[,phenotype]))
+        realRanking<-sp.logiregs(x=dataTransp,y=Y)[,1]
+        rankingMat<-replicate(nPerm,sp.logiregs(x=dataTransp,y=sample(Y))[,1])
+      }
+      rankingMat<-as.data.frame(cbind(realRanking, rankingMat))
+      colnames(rankingMat)<-c("Real",paste0("Random",1:nPerm))
+      rankingMat<-as.list(rankingMat)
+      rankingMat<-lapply(rankingMat, function(x)structure(x,names=rownames(subData)))
+      rankingMat<-lapply(rankingMat,sort, decreasing=T)
+      geneIndexes<-lapply(rankingMat,function(x)lapply(pathways,function(z)which(names(x)%in%z)))
+      calcES<-function(geneIndexList, randomRanking){
+        unlist(lapply(geneIndexList,function(x)calcGseaStat(stats = randomRanking, selectedStats = x)))
+      }
+      rankingList[[i]]<-rankingMat
+      ESlist[[i]]<-mapply(calcES, geneIndexList=geneIndexes, randomRanking=rankingMat)
+    }
+  } else {
+    ESlist<-vector("list",length=length(ranks))
+    names(ESlist)<-names(ranks)
+    for(i in names(ESlist)){
+      geneIndexes<-lapply(ranks,function(x)lapply(pathways,function(z)which(names(x)%in%z)))
+      calcES<-function(geneIndexList, randomRanking){
+        unlist(lapply(geneIndexList,function(x)calcGseaStat(stats = randomRanking, selectedStats = x)))
+      }
+      ESlist[[i]]<-mapply(calcES, geneIndexList=geneIndexes, randomRanking=ranks)
+    }
+  }
+  realDiff<-ESlist[[1]][,1]-ESlist[[2]][,1]
+  simDiff<-mapply(function(X,Y){sapply(2:(nPerm+1), function(col) X[,col]-Y[,col])}, X=ESlist[1], Y=ESlist[2], SIMPLIFY=F)[[1]]
+  diffs<-cbind(realDiff, simDiff)
+  pval<-apply(diffs, 1, function(x){
+    if(x[1]>0){
+      sum(x[x>0][-1]>=x[1])/sum(x[-1]>0)
+    } else {
+      sum(x[x<0][-1]<=x[1])/sum(x[-1]<0)
+    }
+  }
+  )
+  pvalCalc<-list(ranks=rankingList, ES=ESlist, differences = diffs, pvalues=pval)
+  return(pvalCalc)
+}
+
+
+#**********************************************
+# random limma
+#**********************************************
+
+randomLimma<-function(phenotype, covariates, dgeObject, contrasts){
+  f<-factor(sample(phenotype))
+  covs<-dgeObject$samples[,covariates]
+  covs<-cbind(f,covs)
+  if(sum(colSums(is.na(covs)))>0){
+    stop("Error: NAs present in the sample covariates")
+  }
+  if(!is.null(covariates)){
+    formula<-as.formula(paste0("~0+f+",paste(covariates, collapse="+")))
+  } else {
+    formula<-as.formula("~0+f")
+  }
+  design<-model.matrix(formula, data=covs)
+  colnames(design)[1:length(levels(f))]<-levels(f)
+  v<-voom(dgeObject, design, plot=F)
+  fit <- lmFit(v, design)
+  contrast.matrix <- makeContrasts(contrasts=contrasts,
+                                   levels=design)
+  fit.cont <- contrasts.fit(fit, contrast.matrix)
+  fit.eb <- eBayes(fit.cont)
+  tList<-vector("list", length=length(contrasts))
+  names(tList)<-contrasts
+  tStats<-lapply(contrasts, function(x)structure(topTable(fit.eb,coef=x,number=nrow(v), adjust="BH", sort.by="none")$t, names=rownames(dgeObject)))
+  names(tStats)<-contrasts
+  return(tStats)
+}
 
 
 
