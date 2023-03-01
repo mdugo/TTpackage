@@ -2105,7 +2105,7 @@ gseaInteraction<-function(data, phenotype, subsetting_variable, nPerm=1000, phen
     rankingList<-ESlist
     for(i in names(ESlist)){
       subData<-data[,pData(data)[,subsetting_variable]==i]
-      Y<-as.numeric(factor(pData(subData)[,phenotype],levels=pheno_factor_levels))
+      Y<-as.numeric(factor(pData(subData)[,phenotype],levels=pheno_factor_levels))-1
       dataTransp<-t(exprs(subData))
       set.seed(seed)
       if(test=="t-test"){
@@ -2117,7 +2117,6 @@ gseaInteraction<-function(data, phenotype, subsetting_variable, nPerm=1000, phen
         rankingMat<-replicate(nPerm,regression(x=dataTransp,y=sample(Y))[,1])
       }
       if(test=="logistic"){
-        Y<-as.numeric(as.vector(pData(subData)[,phenotype]))
         realRanking<-sp.logiregs(x=dataTransp,y=Y)[,1]
         rankingMat<-replicate(nPerm,sp.logiregs(x=dataTransp,y=sample(Y))[,1])
       }
@@ -2192,5 +2191,143 @@ randomLimma<-function(phenotype, covariates, dgeObject, contrasts){
 }
 
 
+#********************************************************
+# gsea plot
+#********************************************************
+
+gseaPlot<-function(rankStat, geneSet, geneSetList, gseaTable, margin.r=0.2, margin.l=0.2, title="", labelPos="", labelNeg="", labelSize=4){
+  library(fgsea)
+  library(ggplot2)
+  library(cowplot)
+  statsAdj <- sort(rankStat,decreasing=T)
+  mypathway <- unname(as.vector(na.omit(match(geneSetList[[geneSet]], names(statsAdj)))))
+  mypathway <- sort(mypathway)
+  gseaRes <- calcGseaStat(statsAdj, selectedStats = mypathway,
+                          returnAllExtremes = TRUE)
+  bottoms <- gseaRes$bottoms
+  tops <- gseaRes$tops
+  n <- length(statsAdj)
+  xs <- as.vector(rbind(mypathway - 1, mypathway))
+  ys <- as.vector(rbind(bottoms, tops))
+  toPlot <- data.frame(x = c(0, xs, n + 1), y = c(0, ys, 0))
+  sigLabel<-paste0("ES = ",round(gseaTable$ES[gseaTable$pathway==geneSet],2),"\nNES = ",round(gseaTable$NES[gseaTable$pathway==geneSet],2),"\nP = ",round(gseaTable$pval[gseaTable$pathway==geneSet],3),"\nFDR = ",round(gseaTable$padj[gseaTable$pathway==geneSet],3))
+
+  if(gseaTable$ES[gseaTable$pathway==geneSet]<0){
+    g1<-ggplot(data=toPlot, aes(x=x, y=y)) +
+      geom_line(size=1.2, color="green") +
+      xlab(NULL) +
+      theme_bw() +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.text.x = element_blank(),
+            axis.title.x = element_blank(),
+            plot.margin = ggplot2::margin(t = 0.2, r = margin.r, b = -0.2, l = margin.l, unit = "cm")) +
+      scale_x_continuous(expand = c(0, 0)) +
+      scale_y_continuous(breaks=seq(from=min(toPlot$y),to= max(toPlot$y), length.out=5),
+                         labels = round(seq(from=min(toPlot$y),to= max(toPlot$y), length.out=5),2)) +
+      ylab("Running ES") +
+      labs(title=paste0("Geneset: ", geneSet, title)) +
+      ggplot2::annotate("text", x= min(toPlot$x)+500, y =min(toPlot$y),label=sigLabel,hjust=0, vjust=0)
+  } else {
+    g1<-ggplot(data=toPlot, aes(x=x, y=y)) +
+      geom_line(size=1.2, color="green") +
+      xlab(NULL) +
+      theme_bw() +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.text.x = element_blank(),
+            axis.title.x = element_blank(),
+            plot.margin = ggplot2::margin(t = 0.2, r = margin.r, b = -0.2, l = margin.l, unit = "cm")) +
+      scale_x_continuous(expand = c(0, 0)) +
+      scale_y_continuous(breaks=seq(from=min(toPlot$y),to= max(toPlot$y), length.out=5),
+                         labels = paste0(" ",round(seq(from=min(toPlot$y),to= max(toPlot$y), length.out=5),2))) +
+      ylab("Running ES") +
+      labs(title=paste0("Geneset: ", geneSet, title)) +
+      ggplot2::annotate("text", x= max(toPlot$x)-500, y =max(toPlot$y),label=sigLabel,hjust=1, vjust=1)
+  }
+
+  ticks<-data.frame(idx=1:length(statsAdj),ymin=0,ymax=0,ymax2=1)
+  ticks$ymax[mypathway]<-1
+  g2<-ggplot(data=ticks, aes(x=idx)) +
+    geom_linerange(aes(ymin=ymin, ymax=ymax)) +
+    #geom_linerange(aes(ymin=ymin, ymax=ymax2,color=statsAdj)) +
+    #scale_color_gradient2(low=tickcol[1],mid=tickcol[2],high=tickcol[3], guide="none") +
+    theme_bw() +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.ticks = element_blank(),
+          axis.text = element_blank(),
+          axis.title = element_blank(),
+          axis.line.x = element_blank(),
+          plot.margin = ggplot2::margin(t = 0, r = margin.r, b = 0, l = margin.l, unit = "cm")) +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0,0))
+
+  cut1<-cut(statsAdj[statsAdj>0],10, labels=1:10)
+  cut2<-cut(statsAdj[statsAdj<0],10, labels=-10:-1)
+  cutpoints1<-cumsum(rev(table(cut1)))
+  cutpoints2<-cumsum(rev(table(cut2)))+length(statsAdj[statsAdj>0])
+  cutpoints<-c(cutpoints1, cutpoints2)
+  rects<-data.frame(xmin=c(0,cutpoints[-length(cutpoints)]), xmax=cutpoints, ymin=0, ymax=1, FillVal=seq(10,-9,-1))
+  midpoint<-rects[rects$FillVal==0,]
+  midpoint$xmax<-midpoint$xmin
+  rects2<-rects[rects$FillVal<=0,]
+  rects2$FillVal<-rects2$FillVal-1
+  rects<-rbind(rects[rects$FillVal>0,],midpoint,rects2)
+  g3<-ggplot(aes(x=xmin), data=rects) +
+    geom_rect(aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, fill=FillVal), data=rects) +
+    scale_fill_gradient2(low="blue",high="red2", guide="none") +
+    theme_bw() +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.ticks = element_blank(),
+          axis.text = element_blank(),
+          axis.title = element_blank(),
+          axis.line.x = element_blank(),
+          plot.margin = ggplot2::margin(t = -0.2, r = margin.r, b = 0, l = margin.l, unit = "cm")) +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0,0)) +
+    geom_text(aes(x=500, y=0.5, label=labelPos), size=labelSize, hjust=0, vjust=0.5) +
+    geom_text(aes(x=nrow(ticks)-500, y=0.5, label=labelNeg), size=labelSize, hjust=1, vjust=0.5)
 
 
+  rnkPlot<-data.frame(idx=1:length(statsAdj), rnkStat=statsAdj)
+  g4<-ggplot(data=rnkPlot, aes(x=idx, y=rnkStat)) +
+    geom_bar(stat = "identity") +
+    theme_bw() +
+    theme(panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank(),
+          legend.position = c(0.85, 0.85),
+          plot.margin = ggplot2::margin(t = -0.2, r = margin.r, b = 0.2, l = margin.l, unit = "cm")) +
+    xlab("Gene rank") +
+    ylab("Ranking statitisc") +
+    scale_fill_gradient2(low="blue",mid="grey80",high="red2", guide="none") +
+    scale_x_continuous(breaks = seq(0,length(statsAdj),5000),expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0,0))
+
+  gs1<-plot_grid(g1, g2, g3, g4, ncol=1, rel_heights = c(1.5, 0.3, 0.2, 1), align = "v")
+  return(gs1)
+}
+
+
+#********************************************************
+# NCBI annotation
+#********************************************************
+
+ncbiAnnot<-function(fdata, column_name_symbol){
+  ncbi<-read.table("/Users/dugo.matteo/Desktop/hsr_bioinfo/databases/annotations/NCBI/Homo_sapiens_gene_info_Jan23", sep="\t", as.is=T, quote="", comment.char = "", header=T)
+  ncbi$Synonyms<-paste0(ncbi$Symbol,"|",ncbi$Synonyms)
+  geneList<-sapply(ncbi$Synonyms, function(x)strsplit(x,"\\|"))
+  names(geneList)<-ncbi$Symbol
+  geneList<-lapply(geneList, function(x)data.frame(Official_Symbol=x[1],Alias=x))
+  geneDF<-do.call(rbind.data.frame, geneList)
+  ncbi2<-unique(ncbi[,c("Symbol","Synonyms")])
+  colnames(ncbi2)[1]<-"Official_Symbol"
+  geneDF<-merge(geneDF, ncbi2, by="Official_Symbol", all.x=T)
+  colnames(fdata)[colnames(fdata)==column_name_symbol]<-"Alias"
+  fdata<-merge(fdata, geneDF, by="Alias", all.x=T)
+  rownames(fdata)<-fdata$Official_Symbol
+
+}
